@@ -2,7 +2,6 @@ import requests
 import re
 import urllib.request
 from bs4 import BeautifulSoup
-from collections import deque
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 import os
@@ -23,6 +22,8 @@ class HyperlinkParser(HTMLParser):
         # If the tag is an anchor tag and it has an href attribute, add the href attribute to the list of hyperlinks
         if tag == "a" and "href" in attrs:
             self.hyperlinks.append(attrs["href"])
+
+
 class Crawler(ICrawler):
     # Function to get the hyperlinks from a URL
     @staticmethod
@@ -85,8 +86,6 @@ class Crawler(ICrawler):
 
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectory: str, queue, seen):
-
-
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
         try:
@@ -96,6 +95,7 @@ class Crawler(ICrawler):
                 # Get the text from the URL using BeautifulSoup
                 soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
+                # TODO: add support for PDF extraction
                 # Get the text but remove the tags
                 text = soup.get_text()
 
@@ -116,7 +116,8 @@ class Crawler(ICrawler):
                     queue.put((link, depth + 1))
                     seen[link] = 1
     @staticmethod
-    def crawl(url: str, maxDepth: int, baseDirectory: str=None, cores: int=2):
+    def crawl(url: str, maxDepth: int, baseDirectory: str=None, cores: int=2) -> set:
+        foundLinks = set()
         # Parse the URL and get the domain
         local_domain = urlparse(url).netloc
 
@@ -154,9 +155,12 @@ class Crawler(ICrawler):
                     results = [res for res in results if not res.ready()]
                     if len(results) == 0 and queue.empty():
                         break
+            foundLinks = set(seen.keys())
+        return foundLinks
 
+def testInterface(crawler: ICrawler):
+    crawler.crawl("https://openai.com/customer-stories", 1, baseDirectory="https://openai.com/customer-stories", cores=4)
 
-
-
+# Test function
 if __name__ == "__main__":
-    Crawler.crawl("https://openai.com/customer-stories", 1, baseDirectory="https://openai.com/customer-stories", cores=4)
+    testInterface(Crawler)

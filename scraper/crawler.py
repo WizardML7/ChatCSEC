@@ -83,17 +83,42 @@ class Crawler(ICrawler):
         # Return the list of hyperlinks that are within the same domain
         return list(set(clean_links))
 
-
     @staticmethod
-    def crawl(url: str, maxDepth: int, baseDirectory: str=None, limit: int=0):
-        count = 0
+    def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectory: str, queue, seen):
+
+
+        print(url, depth)  # for debugging and to see the progress
+        # Try extracting the text from the link, if failed proceed with the next item in the queue
+        try:
+            # Save text from the url to a <url>.txt file
+            with open('text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
+
+                # Get the text from the URL using BeautifulSoup
+                soup = BeautifulSoup(requests.get(url).text, "html.parser")
+
+                # Get the text but remove the tags
+                text = soup.get_text()
+
+                # If the crawler gets to a page that requires JavaScript, it will stop the crawl
+                if ("You need to enable JavaScript to run this app." in text):
+                    print("Unable to parse page " + url + " due to JavaScript being required")
+
+                # Otherwise, write the text to the file in the text directory
+                f.write(text)
+
+        except Exception as e:
+            print("Unable to parse page " + url)
+
+        # Get the hyperlinks from the URL and add them to the queue
+        if depth < maxDepth:
+            for link in Crawler.get_domain_hyperlinks(local_domain, url):
+                if link not in seen.keys() and link.startswith(baseDirectory):
+                    queue.put((link, depth + 1))
+                    seen[link] = 1
+    @staticmethod
+    def crawl(url: str, maxDepth: int, baseDirectory: str=None, cores: int=2):
         # Parse the URL and get the domain
         local_domain = urlparse(url).netloc
-
-        # Create a queue to store the URLs to crawl
-
-        # Create a set to store the URLs that have already been seen (no duplicates)
-        seen = set([url])
 
         # Create a directory to store the text files
         if not os.path.exists("text/"):
@@ -107,49 +132,31 @@ class Crawler(ICrawler):
             os.mkdir("processed")
 
         # While the queue is not empty, continue crawling
-        with Manager() as manager:
+        with Manager() as manager, Pool(processes=cores) as pool:
+            # Create a queue to store the URLs to crawl
             queue = manager.Queue()
+            # Create a set to store the URLs that have already been seen (no duplicates)
+            # Using a dict as a set, since there is no manager.set()
+            seen = manager.dict()
             queue.put((url, 0))
-            while not queue.empty():
+            seen[url] = 1
+            results = []
+
+            while True:
                 # Get the next URL from the queue
-                next = queue.get()
-                url = next[0]
-                depth = next[1]
-
-                print(url, depth)  # for debugging and to see the progress
-
-                # Try extracting the text from the link, if failed proceed with the next item in the queue
                 try:
-                    # Save text from the url to a <url>.txt file
-                    with open('text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
+                    next = queue.get_nowait()
+                    url = next[0]
+                    depth = next[1]
+                    results.append(pool.apply_async(Crawler.crawlPage,
+                                                    (local_domain, url, depth, maxDepth, baseDirectory, queue, seen)))
+                except:
+                    results = [res for res in results if not res.ready()]
+                    if len(results) == 0 and queue.empty():
+                        break
 
-                        # Get the text from the URL using BeautifulSoup
-                        soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
-                        # Get the text but remove the tags
-                        text = soup.get_text()
 
-                        # If the crawler gets to a page that requires JavaScript, it will stop the crawl
-                        if ("You need to enable JavaScript to run this app." in text):
-                            print("Unable to parse page " + url + " due to JavaScript being required")
-
-                        # Otherwise, write the text to the file in the text directory
-                        f.write(text)
-
-                        # Enforce the document limit
-                        if limit > 0:
-                            count += 1
-                            if count >= limit:
-                                break
-                except Exception as e:
-                    print("Unable to parse page " + url)
-
-                # Get the hyperlinks from the URL and add them to the queue
-                if depth < maxDepth:
-                    for link in Crawler.get_domain_hyperlinks(local_domain, url):
-                        if link not in seen and link.startswith(baseDirectory):
-                            queue.put((link, depth + 1))
-                            seen.add(link)
 
 if __name__ == "__main__":
-    Crawler.crawl("https://openai.com/customer-stories", 1, baseDirectory="https://openai.com/customer-stories")
+    Crawler.crawl("https://openai.com/customer-stories", 1, baseDirectory="https://openai.com/customer-stories", cores=4)

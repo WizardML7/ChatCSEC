@@ -1,123 +1,64 @@
 import requests
-import re
-import urllib.request
-from bs4 import BeautifulSoup
-from html.parser import HTMLParser
+
 from urllib.parse import urlparse
 import os
 from iCrawler import ICrawler
 from multiprocessing import Pool, cpu_count, Manager
+from handlers import PDFHandler, HTMLHandler
+import traceback
 
-
-class HyperlinkParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        # Create a list to store the hyperlinks
-        self.hyperlinks = []
-
-    # Override the HTMLParser's handle_starttag method to get the hyperlinks
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-
-        # If the tag is an anchor tag and it has an href attribute, add the href attribute to the list of hyperlinks
-        if tag == "a" and "href" in attrs:
-            self.hyperlinks.append(attrs["href"])
 
 
 class Crawler(ICrawler):
+
     # Function to get the hyperlinks from a URL
-    @staticmethod
-    def get_hyperlinks(url):
-        # Try to open the URL and read the HTML
-        try:
-            # Open the URL and read the HTML
-            with urllib.request.urlopen(url) as response:
 
-                # If the response is not HTML, return an empty list
-                if not response.info().get('Content-Type').startswith("text/html"):
-                    return []
 
-                # Decode the HTML
-                html = response.read().decode('utf-8')
-        except Exception as e:
-            print(e)
-            return []
 
-        # Create the HTML Parser and then Parse the HTML to get hyperlinks
-        parser = HyperlinkParser()
-        parser.feed(html)
-
-        return parser.hyperlinks
-
-    # Function to get the hyperlinks from a URL that are within the same domain
-    @staticmethod
-    def get_domain_hyperlinks(local_domain, url):
-        HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
-        clean_links = []
-        for link in set(Crawler.get_hyperlinks(url)):
-            clean_link = None
-
-            # If the link is a URL, check if it is within the same domain
-            if re.search(HTTP_URL_PATTERN, link):
-                # Parse the URL and check if the domain is the same
-                url_obj = urlparse(link)
-                if url_obj.netloc == local_domain:
-                    clean_link = link
-
-            # If the link is not a URL, check if it is a relative link
-            else:
-                if link.startswith("/"):
-                    link = link[1:]
-                elif (
-                        link.startswith("#")
-                        or link.startswith("mailto:")
-                        or link.startswith("tel:")
-                ):
-                    continue
-                clean_link = "https://" + local_domain + "/" + link
-
-            if clean_link is not None:
-                if clean_link.endswith("/"):
-                    clean_link = clean_link[:-1]
-                clean_links.append(clean_link)
-
-        # Return the list of hyperlinks that are within the same domain
-        return list(set(clean_links))
 
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectory: str, queue, seen):
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
+
+        # Handler Mappings
+        handlers = {
+            "application/pdf": PDFHandler,
+            "text/html": HTMLHandler
+        }
+
         try:
             # Save text from the url to a <url>.txt file
             with open('text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
-
-                # Get the text from the URL using BeautifulSoup
-                soup = BeautifulSoup(requests.get(url).text, "html.parser")
-
-                # TODO: add support for PDF extraction
-                # Get the text but remove the tags
-                text = soup.get_text()
+                content = requests.get(url)
+                contentType = content.headers["content-type"].split(";")[0]
+                # use the appropriate handler for the MIME type
+                try:
+                    text = handlers[contentType].parseText(content)
+                except KeyError:
+                    print(f'{url} requires {contentType} handler, not implemented')
+                    return
 
                 # If the crawler gets to a page that requires JavaScript, it will stop the crawl
                 if ("You need to enable JavaScript to run this app." in text):
                     print("Unable to parse page " + url + " due to JavaScript being required")
+                    return
 
                 # Otherwise, write the text to the file in the text directory
                 f.write(text)
 
         except Exception as e:
+            traceback.print_exc()
             print("Unable to parse page " + url)
 
         # Get the hyperlinks from the URL and add them to the queue
         if depth < maxDepth:
-            for link in Crawler.get_domain_hyperlinks(local_domain, url):
-                if link not in seen.keys() and link.startswith(baseDirectory):
-                    queue.put((link, depth + 1))
-                    seen[link] = 1
+            handlers[contentType].findLinks(content, local_domain, url, seen, queue, depth, baseDirectory)
+
     @staticmethod
-    def crawl(url: str, maxDepth: int, baseDirectory: str=None, cores: int=2) -> set:
+    def crawl(url: str, maxDepth: int, baseDirectory: list[str]=None, cores: int=2) -> set:
         foundLinks = set()
+
         # Parse the URL and get the domain
         local_domain = urlparse(url).netloc
 
@@ -159,7 +100,10 @@ class Crawler(ICrawler):
         return foundLinks
 
 def testInterface(crawler: ICrawler):
-    crawler.crawl("https://openai.com/customer-stories", 1, baseDirectory="https://openai.com/customer-stories", cores=4)
+    # OpenAI Test
+    Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"])
+    # PDF Test
+    #crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, cores=4)
 
 # Test function
 if __name__ == "__main__":

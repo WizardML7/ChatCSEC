@@ -99,9 +99,9 @@ class Crawler(ICrawler):
 
 def testInterface(crawler: ICrawler):
     # OpenAI Test
-    #Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"])
+    # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"])
     # PDF Test
-    crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, cores=4)
+    crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
 
 # Test function
 if __name__ == "__main__":

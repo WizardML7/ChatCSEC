@@ -7,14 +7,29 @@ import urllib.request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from html.parser import HTMLParser
+
+HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
+PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
+
 class IHandler(ABC):
     @abstractmethod
     def parseText(content: Response) -> str:
         pass
 
     @abstractmethod
-    def findLinks(content: Response, local_domain: str, url: str, seen, queue, depth, baseDirectory):
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
         pass
+
+    @staticmethod
+    @abstractmethod
+    def addLinks(links: list[str], seen, queue, depth, baseDirectory):
+        if not baseDirectory:
+            baseDirectory = ["http"]
+        for link in links:
+            if link not in seen.keys() and link.startswith(tuple(baseDirectory)):
+                queue.put((link, depth + 1))
+                seen[link] = 1
+
 
 
 class HTMLHandler(IHandler):
@@ -31,6 +46,7 @@ class HTMLHandler(IHandler):
             # If the tag is an anchor tag and it has an href attribute, add the href attribute to the list of hyperlinks
             if tag == "a" and "href" in attrs:
                 self.hyperlinks.append(attrs["href"])
+
     @staticmethod
     def parseText(content: Response) -> str:
         return BeautifulSoup(content.text, "html.parser").get_text()
@@ -39,7 +55,7 @@ class HTMLHandler(IHandler):
     def get_hyperlinks(content):
         # Try to open the URL and read the HTML
         try:
-                html = content.content.decode('utf-8')
+            html = content.content.decode('utf-8')
         except Exception as e:
             print(e)
             return []
@@ -53,7 +69,6 @@ class HTMLHandler(IHandler):
     # Function to get the hyperlinks from a URL that are within the same domain
     @staticmethod
     def get_domain_hyperlinks(local_domain, content):
-        HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
         clean_links = []
         for link in set(HTMLHandler.get_hyperlinks(content)):
             clean_link = None
@@ -69,11 +84,7 @@ class HTMLHandler(IHandler):
             else:
                 if link.startswith("/"):
                     link = link[1:]
-                elif (
-                        link.startswith("#")
-                        or link.startswith("mailto:")
-                        or link.startswith("tel:")
-                ):
+                elif link.startswith(tuple(PROTOCOL_BLACKLIST)):
                     continue
                 clean_link = "https://" + local_domain + "/" + link
 
@@ -87,14 +98,8 @@ class HTMLHandler(IHandler):
 
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
-        # If base directory is empty, make it accept all hypertext
-        if not baseDirectory:
-            baseDirectory = ["http"]
-        for link in HTMLHandler.get_domain_hyperlinks(local_domain, content):
-            # if link has been seen and is allowed by base dict, add to queue and mark as seen
-            if link not in seen.keys() and link.startswith(tuple(baseDirectory)):
-                queue.put((link, depth + 1))
-                seen[link] = 1
+        links = HTMLHandler.get_domain_hyperlinks(local_domain, content)
+        HTMLHandler.addLinks(links, seen, queue, depth, baseDirectory)
 
 
 class PDFHandler(IHandler):
@@ -105,3 +110,26 @@ class PDFHandler(IHandler):
         for page in reader.pages:
             text += page.extract_text()
         return text
+
+    @staticmethod
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
+        # TODO: Remove redundant parsetext call, retrieve from previous call
+        links = []
+        reader = PdfReader(BytesIO(content.content))
+        pages = len(reader.pages)
+        key = '/Annots'
+        uri = '/URI'
+        ank = '/A'
+
+        for page in range(pages):
+            pageSliced = reader.pages[page]
+            pageObject = pageSliced.get_object()
+            if key in pageObject.keys():
+                ann = pageObject[key]
+                for a in ann:
+                    u = a.get_object()
+                    if uri in u[ank].keys() and not uri.startswith(tuple(PROTOCOL_BLACKLIST)):
+                        links.append(u[ank][uri])
+
+        PDFHandler.addLinks(links, seen, queue, depth, baseDirectory)
+

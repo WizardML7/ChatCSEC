@@ -53,12 +53,10 @@ class Crawler(ICrawler):
 
         # Get the hyperlinks from the URL and add them to the queue
         if depth < maxDepth:
-            handlers[contentType].findLinks(content, local_domain, url, seen, queue, depth, baseDirectory)
+            handlers[contentType].findLinks(content, local_domain, seen, queue, depth, baseDirectory)
 
     @staticmethod
     def crawl(url: str, maxDepth: int, baseDirectory: list[str]=None, cores: int=2) -> set:
-        foundLinks = set()
-
         # Parse the URL and get the domain
         local_domain = urlparse(url).netloc
 

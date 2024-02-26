@@ -36,18 +36,10 @@ class HTMLHandler(IHandler):
         return BeautifulSoup(content.text, "html.parser").get_text()
 
     @staticmethod
-    def get_hyperlinks(url):
+    def get_hyperlinks(content):
         # Try to open the URL and read the HTML
         try:
-            # Open the URL and read the HTML
-            with urllib.request.urlopen(url) as response:
-
-                # If the response is not HTML, return an empty list
-                if not response.info().get('Content-Type').startswith("text/html"):
-                    return []
-
-                # Decode the HTML
-                html = response.read().decode('utf-8')
+                html = content.content.decode('utf-8')
         except Exception as e:
             print(e)
             return []
@@ -60,10 +52,10 @@ class HTMLHandler(IHandler):
 
     # Function to get the hyperlinks from a URL that are within the same domain
     @staticmethod
-    def get_domain_hyperlinks(local_domain, url):
+    def get_domain_hyperlinks(local_domain, content):
         HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
         clean_links = []
-        for link in set(HTMLHandler.get_hyperlinks(url)):
+        for link in set(HTMLHandler.get_hyperlinks(content)):
             clean_link = None
 
             # If the link is a URL, check if it is within the same domain
@@ -94,11 +86,12 @@ class HTMLHandler(IHandler):
         return list(set(clean_links))
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, url: str, seen, queue, depth, baseDirectory):
-        for link in HTMLHandler.get_domain_hyperlinks(local_domain, url):
-            #If base directory is empty, make it accept all hypertext
-            if not baseDirectory:
-                baseDirectory = ["http"]
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
+        # If base directory is empty, make it accept all hypertext
+        if not baseDirectory:
+            baseDirectory = ["http"]
+        for link in HTMLHandler.get_domain_hyperlinks(local_domain, content):
+            # if link has been seen and is allowed by base dict, add to queue and mark as seen
             if link not in seen.keys() and link.startswith(tuple(baseDirectory)):
                 queue.put((link, depth + 1))
                 seen[link] = 1

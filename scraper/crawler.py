@@ -10,12 +10,6 @@ import traceback
 
 
 class Crawler(ICrawler):
-
-    # Function to get the hyperlinks from a URL
-
-
-
-
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectory: str, queue, seen):
         print(url, depth)  # for debugging and to see the progress
@@ -106,3 +100,4 @@ def testInterface(crawler: ICrawler):
 # Test function
 if __name__ == "__main__":
     testInterface(Crawler)
+

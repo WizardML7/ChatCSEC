@@ -77,9 +77,11 @@ class HTMLHandler(IHandler):
             if re.search(HTTP_URL_PATTERN, link):
                 # Parse the URL and check if the domain is the same
                 url_obj = urlparse(link)
-                if url_obj.netloc == local_domain:
-                    clean_link = link
 
+                # Makes sure new url is on the same domain
+                # if url_obj.netloc == local_domain:
+                #    clean_link = link
+                clean_link = link
             # If the link is not a URL, check if it is a relative link
             else:
                 if link.startswith("/"):
@@ -113,7 +115,7 @@ class PDFHandler(IHandler):
 
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
-        # TODO: Remove redundant parsetext call, retrieve from previous call
+        # TODO: Remove redunant PdfReader construction
         links = []
         reader = PdfReader(BytesIO(content.content))
         pages = len(reader.pages)

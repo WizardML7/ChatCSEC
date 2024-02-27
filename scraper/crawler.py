@@ -23,6 +23,7 @@ class Crawler(ICrawler):
 
         try:
             # Save text from the url to a <url>.txt file
+            # TODO: Fix bug with bad filenames, try first openai test for example
             with open('text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
                 content = requests.get(url)
                 contentType = content.headers["content-type"].split(";")[0]
@@ -51,15 +52,10 @@ class Crawler(ICrawler):
 
     @staticmethod
     def crawl(url: str, maxDepth: int, baseDirectory: list[str]=None, cores: int=2) -> set:
-        # Parse the URL and get the domain
-        local_domain = urlparse(url).netloc
 
         # Create a directory to store the text files
         if not os.path.exists("text/"):
             os.mkdir("text/")
-
-        if not os.path.exists("text/" + local_domain + "/"):
-            os.mkdir("text/" + local_domain + "/")
 
         # Create a directory to store the csv files
         if not os.path.exists("processed"):
@@ -82,6 +78,13 @@ class Crawler(ICrawler):
                     next = queue.get_nowait()
                     url = next[0]
                     depth = next[1]
+
+                    # Parse the URL and get the domain
+                    local_domain = urlparse(url).netloc
+
+                    if not os.path.exists("text/" + local_domain + "/"):
+                        os.mkdir("text/" + local_domain + "/")
+
                     results.append(pool.apply_async(Crawler.crawlPage,
                                                     (local_domain, url, depth, maxDepth, baseDirectory, queue, seen)))
                 except:
@@ -93,9 +96,11 @@ class Crawler(ICrawler):
 
 def testInterface(crawler: ICrawler):
     # OpenAI Test
+    Crawler.crawl("https://openai.com/customer-stories", 1, cores=4)
+    # OpenAI Customer Stories test
     # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"])
     # PDF Test
-    crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
+    # Crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
 
 # Test function
 if __name__ == "__main__":

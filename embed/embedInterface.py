@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 class iEmbed(ABC):
+    @staticmethod
     @abstractmethod
-    def createEmbedding(self, content):
+    def createEmbedding(content) -> list:
         pass

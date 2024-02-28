@@ -9,3 +9,10 @@ class EmbedPrepper:
                 for index in range(len(newChunks)):
                     chunks.insert(chunkIndex + index, newChunks[index])
         return chunks
+
+    @staticmethod
+    def removeExtraWhitespace(content: str) -> str:
+        content = content.replace("\n", " ")
+        while content.find("  ") != -1:
+            content = content.replace("  ", " ")
+        return content

@@ -11,7 +11,8 @@ import traceback
 
 class Crawler(ICrawler):
     @staticmethod
-    def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectory: str, queue, seen):
+    def crawlPage(local_domain: str, url: str, depth: int,
+                  maxDepth: int, baseDirectory: str, queue, seen, outputDirectory: str):
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
 
@@ -24,7 +25,7 @@ class Crawler(ICrawler):
         try:
             # Save text from the url to a <url>.txt file
             # TODO: Fix bug with bad filenames, try first openai test for example
-            with open('text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
+            with open(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
                 content = requests.get(url)
                 contentType = content.headers["content-type"].split(";")[0]
                 # use the appropriate handler for the MIME type
@@ -51,15 +52,17 @@ class Crawler(ICrawler):
             handlers[contentType].findLinks(content, local_domain, seen, queue, depth, baseDirectory)
 
     @staticmethod
-    def crawl(url: str, maxDepth: int, baseDirectory: list[str]=None, cores: int=2) -> set:
+    def crawl(url: str, maxDepth: int,baseDirectory: list[str] = None, cores: int = 2,
+              outputDirectory: str = os.path.dirname(os.path.realpath(__file__))) -> set:
+
 
         # Create a directory to store the text files
-        if not os.path.exists("text/"):
-            os.mkdir("text/")
+        if not os.path.exists(outputDirectory + "/text/"):
+            os.makedirs(outputDirectory + "/text/")
 
         # Create a directory to store the csv files
-        if not os.path.exists("processed"):
-            os.mkdir("processed")
+        if not os.path.exists(outputDirectory + "/processed/"):
+            os.makedirs(outputDirectory + "/processed/")
 
         # While the queue is not empty, continue crawling
         with Manager() as manager, Pool(processes=cores) as pool:
@@ -82,11 +85,12 @@ class Crawler(ICrawler):
                     # Parse the URL and get the domain
                     local_domain = urlparse(url).netloc
 
-                    if not os.path.exists("text/" + local_domain + "/"):
-                        os.mkdir("text/" + local_domain + "/")
+                    if not os.path.exists(outputDirectory + "/text/" + local_domain + "/"):
+                        os.mkdir(outputDirectory + "/text/" + local_domain + "/")
 
                     results.append(pool.apply_async(Crawler.crawlPage,
-                                                    (local_domain, url, depth, maxDepth, baseDirectory, queue, seen)))
+                                                    (local_domain, url, depth, maxDepth,
+                                                     baseDirectory, queue, seen, outputDirectory)))
                 except:
                     results = [res for res in results if not res.ready()]
                     if len(results) == 0 and queue.empty():
@@ -94,13 +98,15 @@ class Crawler(ICrawler):
             foundLinks = set(seen.keys())
         return foundLinks
 
+
 def testInterface(crawler: ICrawler):
     # OpenAI Test
-    Crawler.crawl("https://openai.com/customer-stories", 1, cores=4)
+    # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4)
     # OpenAI Customer Stories test
-    # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"])
+    Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"], outputDirectory=os.path.dirname(os.path.realpath(__file__)) + "/test/")
     # PDF Test
     # Crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
+
 
 # Test function
 if __name__ == "__main__":

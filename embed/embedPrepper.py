@@ -1,18 +1,24 @@
+from typing import Callable
+import tiktoken
+from langchain.text_splitter import CharacterTextSplitter
+
 class EmbedPrepper:
     @staticmethod
-    def chunkText(content: str, maxChunkSize: int, delimiter: str) -> list:
-        chunks = content.split(delimiter)
-        for chunkIndex, chunk in enumerate(chunks):
-            if len(chunk) > maxChunkSize:
-                newChunks = [chunk[index: index + maxChunkSize] for index in range(0, len(chunk), maxChunkSize)]
-                chunks.remove(chunk)
-                for index in range(len(newChunks)):
-                    chunks.insert(chunkIndex + index, newChunks[index])
+    def chunkTextBySize(content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> list:
+        text_splitter = CharacterTextSplitter(
+            separator=delimiter,
+            chunk_size=maxChunkSize,
+            chunk_overlap=chunkOverlap,
+            length_function=len,
+        )
+        chunks = text_splitter.split_text(content)
         return chunks
-
     @staticmethod
     def removeExtraWhitespace(content: str) -> str:
-        content = content.replace("\n", " ")
+        content = content.replace("\n", " ")\
+                    .replace("\r", " ")\
+                    .replace("\xa0", " ")
+
         while content.find("  ") != -1:
             content = content.replace("  ", " ")
         return content

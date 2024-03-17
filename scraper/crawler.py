@@ -7,12 +7,12 @@ from multiprocessing import Pool, cpu_count, Manager
 from handlers import PDFHandler, HTMLHandler
 import traceback
 import re
-
+from queue import Empty
 
 class Crawler(ICrawler):
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int,maxDepth: int, baseDirectory: str, queue, seen,
-                  outputDirectory: str, contentRegex: re.Pattern, matchSkip: bool=False):
+                  outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
 
@@ -22,36 +22,38 @@ class Crawler(ICrawler):
             "text/html": HTMLHandler
         }
 
-        try:
-            # Save text from the url to a <url>.txt file
-            # TODO: Fix bug with bad filenames, try first openai test for example
-            with open(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
-                content = requests.get(url)
-                contentType = content.headers["content-type"].split(";")[0]
-                # use the appropriate handler for the MIME type
-                try:
-                    text = handlers[contentType].parseText(content)
-                except KeyError:
-                    print(f'{url} requires {contentType} handler, not implemented')
-                    return
+        content = requests.get(url)
+        contentType = content.headers["content-type"].split(";")[0]
 
-                # If the crawler gets to a page that requires JavaScript, it will stop the crawl
-                if ("You need to enable JavaScript to run this app." in text):
-                    print("Unable to parse page " + url + " due to JavaScript being required")
-                    return
+        if recordUrl:
+            try:
+                # Save text from the url to a <url>.txt file
+                # TODO: Fix bug with bad filenames, try first openai test for example
+                with open(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
+                    # use the appropriate handler for the MIME type
+                    try:
+                        text = handlers[contentType].parseText(content)
+                    except KeyError:
+                        print(f'{url} requires {contentType} handler, not implemented')
+                        return
 
-                group = contentRegex.match(text)
-                if not matchSkip and not group:
-                    print(f"{url} doe snot match regex, skipping write")
-                    return
-                elif group:
-                    f.write(group['content'])
-                else:
-                    f.write(text)
+                    # If the crawler gets to a page that requires JavaScript, it will stop the crawl
+                    if ("You need to enable JavaScript to run this app." in text):
+                        print("Unable to parse page " + url + " due to JavaScript being required")
+                        return
 
-        except Exception as e:
-            traceback.print_exc()
-            print("Unable to parse page " + url)
+                    if contentRegex:
+                        group = contentRegex.search(text)
+                        if not matchSkip and not group:
+                            Exception(f"{url} doe snot match regex, skipping write")
+                        elif group:
+                            f.write(group['content'])
+                    else:
+                        f.write(text)
+
+            except Exception as e:
+                traceback.print_exc()
+                print("Unable to parse page " + url)
 
         # Get the hyperlinks from the URL and add them to the queue
         if depth < maxDepth:
@@ -93,20 +95,20 @@ class Crawler(ICrawler):
                     next = queue.get_nowait()
                     url = next[0]
                     depth = next[1]
-
+                    recordURL = True
                     # Parse the URL and get the domain
-                    if urlRegexString and not urlRegex.match(url):
-                        continue
-
                     local_domain = urlparse(url).netloc
 
-                    if not os.path.exists(outputDirectory + "/text/" + local_domain + "/"):
+                    if urlRegexString and not urlRegex.match(url):
+                        recordURL = False
+
+                    if not os.path.exists(outputDirectory + "/text/" + local_domain + "/") and recordURL:
                         os.mkdir(outputDirectory + "/text/" + local_domain + "/")
 
                     results.append(pool.apply_async(Crawler.crawlPage,
                                                     (local_domain, url, depth, maxDepth, baseDirectory, queue, seen,
-                                                     outputDirectory, contentRegex, matchSkip)))
-                except:
+                                                     outputDirectory, recordURL, contentRegex, matchSkip)))
+                except Empty:
                     results = [res for res in results if not res.ready()]
                     if len(results) == 0 and queue.empty():
                         break
@@ -116,9 +118,9 @@ class Crawler(ICrawler):
 
 def testInterface(crawler: ICrawler):
     # OpenAI Test
-    # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4)
+    Crawler.crawl("https://openai.com/", 1, cores=4)
     # OpenAI Customer Stories test
-    Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"], outputDirectory=os.path.dirname(os.path.realpath(__file__)) + "/test/")
+    # Crawler.crawl("https://openai.com/customer-stories", 1, cores=4, baseDirectory=["https://openai.com/customer-stories"], outputDirectory=os.path.dirname(os.path.realpath(__file__)) + "/test/", urlRegexString=r'.*customer-stories.*a.*', contentRegexString=r'(?:.*Customer stories)(?P<content>.*)(?:ResearchOverviewIndexGP*)')
     # PDF Test
     # Crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
 

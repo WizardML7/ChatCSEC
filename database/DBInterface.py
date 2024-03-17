@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class iDB(ABC):
     @abstractmethod
-    def saveToDB(self, data):
+    def saveToDB(self, texts: dict, collectionName: str):
         pass
 
     @abstractmethod

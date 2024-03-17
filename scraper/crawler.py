@@ -6,13 +6,13 @@ from iCrawler import ICrawler
 from multiprocessing import Pool, cpu_count, Manager
 from handlers import PDFHandler, HTMLHandler
 import traceback
-
+import re
 
 
 class Crawler(ICrawler):
     @staticmethod
-    def crawlPage(local_domain: str, url: str, depth: int,
-                  maxDepth: int, baseDirectory: str, queue, seen, outputDirectory: str):
+    def crawlPage(local_domain: str, url: str, depth: int,maxDepth: int, baseDirectory: str, queue, seen,
+                  outputDirectory: str, contentRegex: re.Pattern, matchSkip: bool=False):
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
 
@@ -40,8 +40,14 @@ class Crawler(ICrawler):
                     print("Unable to parse page " + url + " due to JavaScript being required")
                     return
 
-                # Otherwise, write the text to the file in the text directory
-                f.write(text)
+                group = contentRegex.match(text)
+                if not matchSkip and not group:
+                    print(f"{url} doe snot match regex, skipping write")
+                    return
+                elif group:
+                    f.write(group['content'])
+                else:
+                    f.write(text)
 
         except Exception as e:
             traceback.print_exc()
@@ -53,8 +59,14 @@ class Crawler(ICrawler):
 
     @staticmethod
     def crawl(url: str, maxDepth: int,baseDirectory: list[str] = None, cores: int = 2,
-              outputDirectory: str = os.path.dirname(os.path.realpath(__file__))) -> set:
+              outputDirectory: str = os.path.dirname(os.path.realpath(__file__)),
+              urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set:
+        if urlRegexString:
+            urlRegex = re.compile(urlRegexString)
 
+        contentRegex = None
+        if contentRegexString:
+            contentRegex = re.compile(contentRegexString)
 
         # Create a directory to store the text files
         if not os.path.exists(outputDirectory + "/text/"):
@@ -83,14 +95,17 @@ class Crawler(ICrawler):
                     depth = next[1]
 
                     # Parse the URL and get the domain
+                    if urlRegexString and not urlRegex.match(url):
+                        continue
+
                     local_domain = urlparse(url).netloc
 
                     if not os.path.exists(outputDirectory + "/text/" + local_domain + "/"):
                         os.mkdir(outputDirectory + "/text/" + local_domain + "/")
 
                     results.append(pool.apply_async(Crawler.crawlPage,
-                                                    (local_domain, url, depth, maxDepth,
-                                                     baseDirectory, queue, seen, outputDirectory)))
+                                                    (local_domain, url, depth, maxDepth, baseDirectory, queue, seen,
+                                                     outputDirectory, contentRegex, matchSkip)))
                 except:
                     results = [res for res in results if not res.ready()]
                     if len(results) == 0 and queue.empty():

@@ -1,4 +1,4 @@
-from modelInterface import iModel
+from .modelInterface import iModel
 from openai import OpenAI
 from os import environ
 class GPT(iModel):

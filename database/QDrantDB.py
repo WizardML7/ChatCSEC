@@ -1,6 +1,6 @@
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import PointStruct
-from DBInterface import iDB
+from .DBInterface import iDB
 class QDrantDB(iDB):
     def __init__(self, host:str):
         #TODO: change to use server credentials

@@ -2,7 +2,7 @@ import requests
 
 from urllib.parse import urlparse
 import os
-from iCrawler import ICrawler
+from .iCrawler import ICrawler
 from multiprocessing import Pool, cpu_count, Manager
 from handlers import PDFHandler, HTMLHandler
 import traceback

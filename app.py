@@ -24,33 +24,28 @@ if __name__ == "__main__":
     #temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
 
     the_string = ""
-    count = 0
-    for i in os.walk("scraper/text/doi.org"):
-        if count > 1:
-            with open('scraper/text/doi.org/' + i , 'r') as file:
-                # Read the entire content of the file
-                content = file.read()
-                # print(i)
-                content = the_prepper.chunkTextBySize(content)
-                content = the_prepper.removeExtraWhitespace(content)
-                the_string += content
-                # print(the_string)
-        else:
-            count += 1
 
-    count = 0
-    for i in os.walk("scraper/text/nvlpubs.nist.gov"):
-        if count > 1:
-            with open('scraper/text/nvlpubs.nist.gov/' + i , 'r') as file:
-                # Read the entire content of the file
-                content = file.read()
-                # print(i)
-                content = the_prepper.chunkTextBySize(content)
-                content = the_prepper.removeExtraWhitespace(content)
-                the_string += content
-                # print(the_string)
-        else:
-            count += 1
+    for dirpath, dirnames, filenames in os.walk('scraper/text/doi.org'):
+        with open('scraper/text/doi.org/' + filenames , 'r') as file:
+            # Read the entire content of the file
+            content = file.read()
+            # print(i)
+            content = the_prepper.chunkTextBySize(content)
+            content = the_prepper.removeExtraWhitespace(content)
+            the_string += content
+            # print(the_string)
+
+
+    for dirpath, dirnames, filenames in os.walk('scraper/text/nvlpubs.nist.gov'):
+        with open('scraper/text/nvlpubs.nist.gov/' + filenames , 'r') as file:
+            # Read the entire content of the file
+            content = file.read()
+            # print(i)
+            content = the_prepper.chunkTextBySize(content)
+            content = the_prepper.removeExtraWhitespace(content)
+            the_string += content
+            # print(the_string)
+
 
     embeddings = the_embed.createEmbedding(the_string)
 

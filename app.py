@@ -18,9 +18,18 @@ if __name__ == "__main__":
     the_database.createCollection("ChatCSEC", 1536)
 
     #TODO:Make this crawler output actually work
-    temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
+    #makes a folder of files
+    the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4)
 
-    embeddings = the_embed.createEmbedding(the_prepper.removeExtraWhitespace(temp))
+    #temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
+
+    the_string = ""
+    for i in os.walk("scraper/text"):
+        i = the_prepper.chunkTextBySize(i)
+        i = the_prepper.removeExtraWhitespace(i)
+        the_string += i
+
+    embeddings = the_embed.createEmbedding(i)
 
     for i,v in embeddings:
         print(f"key:{i}")

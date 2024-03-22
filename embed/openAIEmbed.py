@@ -21,6 +21,7 @@ class OpenAIEmbed(iEmbed):
         embeddingMap = dict()
 
         for chunk in chunks:
+            print(chunk)
             embeddingMap[chunk] = OpenAIEmbed.embedChunk(chunk, client)
 
         return embeddingMap

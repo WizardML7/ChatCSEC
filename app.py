@@ -10,14 +10,14 @@ if __name__ == "__main__":
     os.environ["OPENAI_API_KEY"] = ""
 
     chatbot = GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-3.5-turbo")
-    the_database = QDrantDB()
+    the_database = QDrantDB("")
     the_prepper = EmbedPrepper()
     the_embed = OpenAIEmbed()
     the_crawler = Crawler()
 
-    the_database.createCollection("ChatCSEC", 100)
+    the_database.createCollection("ChatCSEC", 1536)
 
-
+    #TODO:Make this crawler output actually work
     temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
 
     embeddings = the_embed.createEmbedding(the_prepper.removeExtraWhitespace(temp))

@@ -4,8 +4,8 @@ from .DBInterface import iDB
 class QDrantDB(iDB):
     def __init__(self, host:str):
         #TODO: change to use server credentials
-        #qclient = qdrant_client.QdrantClient(host="localhost", prefer_grpc=True, timeout=None)
-        self.client = QdrantClient(":memory")
+        qclient = QdrantClient(host="localhost", prefer_grpc=True, timeout=None)
+        self.client = qclient
 
     def createCollection(self, collectionName: str, size: int):
         self.client.recreate_collection(

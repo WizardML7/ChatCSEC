@@ -1,6 +1,6 @@
 from openai import OpenAI
 from .embedInterface import iEmbed
-from embedPrepper import EmbedPrepper
+from .embedPrepper import EmbedPrepper
 import requests
 from bs4 import BeautifulSoup
 

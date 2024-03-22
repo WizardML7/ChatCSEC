@@ -11,6 +11,7 @@ class EmbedPrepper:
             chunk_overlap=chunkOverlap,
             length_function=len,
         )
+        print(content)
         chunks = text_splitter.split_text(content)
         return chunks
     @staticmethod

@@ -23,7 +23,8 @@ if __name__ == "__main__":
 
     #temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
 
-    the_string = ""
+    # the_string = ""
+    embeddings = dict()
 
     for dirpath, dirnames, filenames in os.walk('scraper/text/doi.org'):
         for i in filenames:
@@ -32,10 +33,12 @@ if __name__ == "__main__":
                 content = file.read()
                 # print(i)
                 content = the_prepper.removeExtraWhitespace(content)
-                content = the_prepper.chunkTextBySize(content)
+                # content = the_prepper.chunkTextBySize(content)
+
+                embeddings.update(the_embed.createEmbedding(content))
                 
-                for j in content:
-                    the_string += j
+                # for j in content:
+                #     the_string += j
                 # print(the_string)
 
 
@@ -47,16 +50,19 @@ if __name__ == "__main__":
                 # print(i)
                 content = the_prepper.removeExtraWhitespace(content)
                 content = the_prepper.chunkTextBySize(content)
-                for j in content:
-                    the_string += j
+
+                embeddings.update(the_embed.createEmbedding(content))
+                
+                # for j in content:
+                #     the_string += j
                 # print(the_string)
 
 
-    embeddings = the_embed.createEmbedding(the_string)
+    # embeddings = the_embed.createEmbedding(the_string)
 
-    for i,v in embeddings:
-        print(f"key:{i}")
-        print(f"value: {v}")
+    # for i,v in embeddings:
+    #     print(f"key:{i}")
+    #     print(f"value: {v}")
 
     the_database.saveToDB(embeddings,"ChatCSEC")
 

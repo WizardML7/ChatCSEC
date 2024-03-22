@@ -1,8 +1,10 @@
-from database.QDrantDB import QDrantDB
+from database import QDrantDB
+from database.QDrantDB import iDB
 from embed.embedPrepper import EmbedPrepper
-from embed.openAIEmbed import OpenAIEmbed
-from model.GPT import GPT
-from scraper.crawler import Crawler
+from embed.openAIEmbed import OpenAIEmbed, iEmbed
+from model import GPT
+from model.GPT import iModel
+from scraper.crawler import Crawler, ICrawler
 import os
 
 if __name__ == "__main__":

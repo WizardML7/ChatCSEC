@@ -31,9 +31,11 @@ if __name__ == "__main__":
                 # Read the entire content of the file
                 content = file.read()
                 # print(i)
-                content = the_prepper.chunkTextBySize(content)
                 content = the_prepper.removeExtraWhitespace(content)
-                the_string += content
+                content = the_prepper.chunkTextBySize(content)
+                
+                for j in content:
+                    the_string += j
                 # print(the_string)
 
 
@@ -43,9 +45,10 @@ if __name__ == "__main__":
                 # Read the entire content of the file
                 content = file.read()
                 # print(i)
-                content = the_prepper.chunkTextBySize(content)
                 content = the_prepper.removeExtraWhitespace(content)
-                the_string += content
+                content = the_prepper.chunkTextBySize(content)
+                for j in content:
+                    the_string += j
                 # print(the_string)
 
 

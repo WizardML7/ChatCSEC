@@ -25,9 +25,11 @@ if __name__ == "__main__":
 
     the_string = ""
     for i in os.walk("scraper/text"):
+        print(i)
         i = the_prepper.chunkTextBySize(i)
         i = the_prepper.removeExtraWhitespace(i)
         the_string += i
+        print(the_string)
 
     embeddings = the_embed.createEmbedding(i)
 

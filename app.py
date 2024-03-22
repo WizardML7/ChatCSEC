@@ -24,14 +24,21 @@ if __name__ == "__main__":
     #temp = the_prepper.chunkTextBySize(the_crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf", 1, baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"], cores=4))
 
     the_string = ""
-    for i in os.walk("scraper/text"):
+    for i in os.walk("scraper/text/doi.org"):
         print(i)
         i = the_prepper.chunkTextBySize(i)
         i = the_prepper.removeExtraWhitespace(i)
         the_string += i
-        print(the_string)
+        # print(the_string)
 
-    embeddings = the_embed.createEmbedding(i)
+    for i in os.walk("scraper/text/nvlpubs.nist.gov"):
+        print(i)
+        i = the_prepper.chunkTextBySize(i)
+        i = the_prepper.removeExtraWhitespace(i)
+        the_string += i
+        # print(the_string)
+
+    embeddings = the_embed.createEmbedding(the_string)
 
     for i,v in embeddings:
         print(f"key:{i}")

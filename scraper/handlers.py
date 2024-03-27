@@ -115,7 +115,6 @@ class PDFHandler(IHandler):
 
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
-        # TODO: Remove redunant PdfReader construction
         links = []
         reader = PdfReader(BytesIO(content.content))
         pages = len(reader.pages)

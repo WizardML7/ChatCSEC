@@ -3,9 +3,7 @@ from qdrant_client.http.models import PointStruct
 from .DBInterface import iDB
 class QDrantDB(iDB):
     def __init__(self, host:str):
-        #TODO: change to use server credentials
-        qclient = QdrantClient(host=host, prefer_grpc=True, timeout=None)
-        self.client = qclient
+        self.client = QdrantClient(host=host, prefer_grpc=True, timeout=None)
 
     def createCollection(self, collectionName: str, size: int):
         self.client.recreate_collection(

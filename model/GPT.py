@@ -37,7 +37,8 @@ class GPT(iModel):
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": "You are used to create hypothetical documents for hypothetical document embedding.  Ensure that your responses will have enough relevance to the probable answer that it will retrieve the proper documents from a similarity search."},
+                {"role": "user", "content": prompt},
             ]
         )
         return response.choices[0].message.content

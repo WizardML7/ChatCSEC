@@ -11,7 +11,7 @@ import os
 import sys
 
 def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
-    prompt = "Which CVEs are in the mozilla foundation 2024-15 security advisory?"
+    prompt = "What is CVE-2024-29943?"
 
     '''
     db.createCollection("InitialTesting", 1536)

@@ -1,7 +1,6 @@
 from database.DBInterface import iDB
 from database.QDrantDB import QDrantDB
 from embed.embedInterface import iEmbed
-from embed.embedPrepper import EmbedPrepper
 from embed.openAIEmbed import OpenAIEmbed
 from model.modelInterface import iModel
 from model.GPT import GPT
@@ -28,9 +27,10 @@ def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
     for root, _, fileNames in os.walk(f"{outputDir}/text/"):
         for fileName in fileNames:
             with open(f'{root}/{fileName}', 'r', encoding="utf8") as file:
-                # TODO: Move completed files to processed folder or delete
                 # chunk the contents of the file
                 embeddings.update(embed.createEmbedding(file.read()))
+
+            os.remove(f'{root}/{fileName}')
 
     db.saveToDB(embeddings, "InitialTesting")
 

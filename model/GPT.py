@@ -33,6 +33,15 @@ class GPT(iModel):
 
         return response.choices[0].message.content
 
+    def hydePrompt(self, prompt: str) -> str:
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+
 
 def testGPT():
     model = GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-3.5-turbo")

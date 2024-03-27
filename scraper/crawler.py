@@ -1,9 +1,9 @@
 import requests
-
+from pathvalidate import sanitize_filepath
 from urllib.parse import urlparse
 import os
 from .iCrawler import ICrawler
-from multiprocessing import Pool, cpu_count, Manager
+from multiprocessing import Pool, Manager
 from .handlers import PDFHandler, HTMLHandler
 import traceback
 import re
@@ -29,7 +29,8 @@ class Crawler(ICrawler):
             try:
                 # Save text from the url to a <url>.txt file
                 # TODO: Fix bug with bad filenames, try first openai test for example
-                with open(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt", "w", encoding="UTF-8") as f:
+                filename = sanitize_filepath(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt")
+                with open(filename, "w", encoding="UTF-8") as f:
                     # use the appropriate handler for the MIME type
                     try:
                         text = handlers[contentType].parseText(content)

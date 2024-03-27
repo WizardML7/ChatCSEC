@@ -13,12 +13,12 @@ import sys
 def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
     prompt = "Which CVEs are in the mozilla foundation 2024-15 security advisory?"
 
-
+    '''
     db.createCollection("InitialTesting", 1536)
 
     outputDir = "./data/"
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
-                  0,
+                  1,
                   cores=4,
                   outputDirectory=outputDir)
 
@@ -33,16 +33,23 @@ def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
             os.remove(f'{root}/{fileName}')
 
     db.saveToDB(embeddings, "InitialTesting")
-
+'''
     promptEmbedding = list(embed.createEmbedding(prompt,
                                                  maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,
                                                  delimiter="\n"*50).values())[0]
+    hydeResponse = model.hydePrompt(prompt)
+    hydeEmbedding = list(embed.createEmbedding(hydeResponse,
+                                                 maxChunkSize=sys.maxsize,
+                                                 chunkOverlap=0,
+                                                 delimiter="\n"*50).values())[0]
 
-    results = db.queryDB(promptEmbedding, collectionNames=["InitialTesting"])
-    response = model.prompt(results, prompt)
+    promptResults = db.queryDB(promptEmbedding, collectionNames=["InitialTesting"], maxHits=50)
+    promptResponse = model.prompt(promptResults, prompt)
+    hydeResults = db.queryDB(hydeEmbedding, collectionNames=["InitialTesting"], maxHits=50)
+    hydeResponse = model.prompt(hydeResults, prompt)
 
-    print(response)
+    print(f"Prompt Response:\n{promptResponse}\nHyde Response:\n{hydeResponse}")
 
 if __name__ == "__main__":
     run(QDrantDB("129.21.21.11"),

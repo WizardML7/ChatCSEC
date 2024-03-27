@@ -2,7 +2,7 @@ from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import PointStruct
 from .DBInterface import iDB
 class QDrantDB(iDB):
-    def __init__(self, host:str):
+    def __init__(self, host: str):
         self.client = QdrantClient(host=host, prefer_grpc=True, timeout=None)
 
     def createCollection(self, collectionName: str, size: int):

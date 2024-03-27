@@ -9,38 +9,39 @@ from scraper.iCrawler import ICrawler
 from scraper.crawler import Crawler
 
 import os
+import sys
 
 def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
-    prompt = "What is NIST and why is it important?"
+    prompt = "Which CVEs are in the mozilla foundation 2024-15 security advisory?"
 
-    db.createCollection("ChatCSEC", 1536)
+
+    db.createCollection("InitialTesting", 1536)
 
     outputDir = "./data/"
-    crawler.crawl("https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.1800-28.pdf",
-                  1,
-                  baseDirectory=["https://doi.org", "https://nvlpubs.nist.gov"],
+    crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
+                  0,
                   cores=4,
                   outputDirectory=outputDir)
 
     embeddings = dict()
 
-    for _, dir, fileNames in os.walk(f"{outputDir}/text/"):
+    for root, _, fileNames in os.walk(f"{outputDir}/text/"):
         for fileName in fileNames:
-            with open(f'{outputDir}/{dir}/{fileName}', 'r') as file:
+            with open(f'{root}/{fileName}', 'r', encoding="utf8") as file:
+                # TODO: Move completed files to processed folder or delete
                 # chunk the contents of the file
-                content = EmbedPrepper.chunkTextBySize(file.read())
+                embeddings.update(embed.createEmbedding(file.read()))
 
-                embeddings.update(embed.createEmbedding(content))
+    db.saveToDB(embeddings, "InitialTesting")
 
-    db.saveToDB(embeddings,"ChatCSEC")
-
-    results = db.queryDB(prompt)
+    # TODO: Fix this.  Soon.
+    results = db.queryDB(list(embed.createEmbedding(prompt, maxChunkSize=sys.maxsize, chunkOverlap=0, delimiter="\n"*50).values())[0], collectionNames=["InitialTesting"])
     response = model.prompt(results, prompt)
 
     print(response)
 
 if __name__ == "__main__":
-    run(QDrantDB(""),
+    run(QDrantDB("129.21.21.11"),
         OpenAIEmbed,
-        GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-3.5-turbo"),
+        GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
         Crawler)

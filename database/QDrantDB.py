@@ -4,23 +4,23 @@ from .DBInterface import iDB
 class QDrantDB(iDB):
     def __init__(self, host:str):
         #TODO: change to use server credentials
-        qclient = QdrantClient(host="localhost", prefer_grpc=True, timeout=None)
+        qclient = QdrantClient(host=host, prefer_grpc=True, timeout=None)
         self.client = qclient
 
     def createCollection(self, collectionName: str, size: int):
         self.client.recreate_collection(
             collection_name=collectionName,
-            vectors_config=models.VectorParams(
+            vectors_config={"text embedding" : models.VectorParams(
                 size=size,
                 distance=models.Distance.COSINE
-            ),
+            )}
         )
 
 
     def convertToPoints(self, texts: dict) -> list[PointStruct]:
         return [
             PointStruct(id=idx,
-                        vector=embedding,
+                        vector={"text embedding": embedding},
                         payload={"text": text},
                         )
             for idx, (embedding, text) in enumerate(zip(texts.values(), texts.keys()))
@@ -39,11 +39,12 @@ class QDrantDB(iDB):
                 collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list:
         results = []
         if not collectionNames:
-            collectionNames = self.client.get_collections()
+            collectionNames = [collection['name'] for collection in self.client.get_collections().dict()['collections']]
 
+        # TODO: make sure to only search collections of the proper size
         for collection in collectionNames:
             results.append(self.client.search(collection_name=collection,
-                                              query_vector=embedding,
+                                              query_vector=("text embedding", embedding),
                                               limit=maxHits,
                                               score_threshold=minSimilarity
                                               ))

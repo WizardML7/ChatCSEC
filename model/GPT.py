@@ -21,7 +21,7 @@ class GPT(iModel):
                                          f"Answer the users QUESTION using the CONTEXT text above.\n"
                                          f"Keep your answer ground in the facts of the DOCUMENT.\n"
                                          f"If the CONTEXT doesn’t contain the facts to answer the QUESTION then try to answer without the CONTEXT\n"
-                                         f"Make note of whether your answer came from the context or not"}
+                                         f"Explicitly say at the end of your statement whether the context was used to make your answer"}
                              )
 
         response = self.client.chat.completions.create(

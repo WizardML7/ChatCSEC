@@ -34,8 +34,12 @@ def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
 
     db.saveToDB(embeddings, "InitialTesting")
 
-    # TODO: Fix this.  Soon.
-    results = db.queryDB(list(embed.createEmbedding(prompt, maxChunkSize=sys.maxsize, chunkOverlap=0, delimiter="\n"*50).values())[0], collectionNames=["InitialTesting"])
+    promptEmbedding = list(embed.createEmbedding(prompt,
+                                                 maxChunkSize=sys.maxsize,
+                                                 chunkOverlap=0,
+                                                 delimiter="\n"*50).values())[0]
+
+    results = db.queryDB(promptEmbedding, collectionNames=["InitialTesting"])
     response = model.prompt(results, prompt)
 
     print(response)

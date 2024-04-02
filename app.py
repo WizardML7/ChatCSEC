@@ -4,14 +4,14 @@ from embed.embedInterface import iEmbed
 from embed.openAIEmbed import OpenAIEmbed
 from model.modelInterface import iModel
 from model.GPT import GPT
-from scraper.iCrawler import ICrawler
+from scraper.iCrawler import iCrawler
 from scraper.crawler import Crawler
 
 import os
 import sys
 
 
-def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
+def run(db: iDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     '''
     Test function to show a static run through of the workflow of the application.  This function will create a new
     database collection crawl a webpage, create embeddings, save the embedding vectors and content, and perform a RAG

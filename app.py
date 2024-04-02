@@ -34,7 +34,7 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     outputDir = "./data/"
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
                   1,
-                  cores=cpu_count(),
+                  cores=4,
                   outputDirectory=outputDir)
 
     outputDir = "./data/"

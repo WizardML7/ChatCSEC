@@ -5,7 +5,6 @@ class iEmbed(ABC):
     An interface used for all embedding models to support dependency injection, inversion and
     polymorphism throughout the application.
     """
-    @staticmethod
     @abstractmethod
     def createEmbedding(content: str, maxChunkSize: int, chunkOverlap: int, delimiter: list) -> dict:
         """

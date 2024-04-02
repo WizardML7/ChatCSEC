@@ -62,6 +62,6 @@ def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
 
 if __name__ == "__main__":
     run(QDrantVectorDB("129.21.21.11"),
-        OpenAIEmbed,
+        OpenAIEmbed("text-embedding-3-small"),
         GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
         Crawler)

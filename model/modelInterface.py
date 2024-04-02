@@ -7,7 +7,7 @@ class iModel(ABC):
     as simple and accurate as possible.
     """
     @abstractmethod
-    def prompt(self, context: str, prompt: str):
+    def prompt(self, context: str, prompt: str) -> str:
         """
         Method to prompt the language model with a statement or question, while providing context for
         improved responses.
@@ -17,7 +17,7 @@ class iModel(ABC):
             prompt (str): A string to ask the language model with.
 
         Returns:
-            None
+            str: The models response to the prompt
         """
         pass
 

@@ -10,7 +10,18 @@ from scraper.crawler import Crawler
 import os
 import sys
 
+
 def run(db: iDB, embed: iEmbed, model: iModel, crawler: ICrawler):
+    '''
+    Test function to show a static run through of the workflow of the application.  This function will create a new
+    database collection crawl a webpage, create embeddings, save the embedding vectors and content, and perform a RAG
+    prompt. To support modularity, the application ahs been designed with dependency injection in mind.
+
+    Args:
+        db (iDB): A database object that conforms to the iDB interface
+        embed (iEmbed): An embed object that conforms to the iEmbed interface
+        model (iModel): A model object that conforms to the ICrawler interface
+    '''
     prompt = "What is CVE-2024-29943?"
 
     '''

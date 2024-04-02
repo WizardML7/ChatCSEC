@@ -22,12 +22,12 @@ class IHandler(ABC):
     @abstractmethod
     def parseText(content: Response) -> str:
         """
-        Parse the content retrieved from a webpage
+        Parse the content retrieved from a webpage.
 
         Args:
-            content (Response): A response object returned from the requests library
+            content (Response): A response object returned from the requests library.
         Returns:
-            str: The content represented in a textual format
+            str: The content represented in a textual format.
         """
         pass
 
@@ -39,13 +39,13 @@ class IHandler(ABC):
         Method to find all non-blacklisted links from documents
 
         Args:
-            content (Response): A response object returned from the requests library
-            local_domain (str): The net location of the URL
+            content (Response): A response object returned from the requests library.
+            local_domain (str): The net location of the URL.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type
-            queue (Queue): The queue for the crawler to search new links
-            depth (int): The current depth of the crawl operation
-            baseDirectories (list): A list of accepted URLs for the crawler to search and save
+            set as the manager for multiprocessing does not support the Set type.
+            queue (Queue): The queue for the crawler to search new links.
+            depth (int): The current depth of the crawl operation.
+            baseDirectories (list): A list of accepted URLs for the crawler to search and save.
 
         Returns:
             None
@@ -57,15 +57,15 @@ class IHandler(ABC):
     def addLinks(links: list[str], seen: dict, queue: Queue, depth: int, baseDirectories: list[str]):
         """
         Generic method for classes to add found links to the queue for workers to process later. The method will first
-        check to see if any of the links have already been seen before adding to the queue
+        check to see if any of the links have already been seen before adding to the queue.
 
         Args:
             links (list): list of URLs to attempt to add to the worker queue.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
             set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links
-            depth (int): The current depth of the crawl operation
-            baseDirectories (list): A list of accepted URL directories for the crawler to search and save
+            queue (Queue): The queue for the crawler to search new links.
+            depth (int): The current depth of the crawl operation.
+            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
 
 
         Returns:
@@ -87,7 +87,7 @@ class HTMLHandler(IHandler):
     """
     class HyperlinkParser(HTMLParser):
         """
-        Subclass used to handle hyperlink parsing for HTML documents
+        Subclass used to handle hyperlink parsing for HTML documents.
         """
         def __init__(self):
             super().__init__()
@@ -97,14 +97,14 @@ class HTMLHandler(IHandler):
         # Override the HTMLParser's handle_starttag method to get the hyperlinks
         def handle_starttag(self, tag: str, attrs: dict):
             """
-            Method used to account for HTML tags, attempts to find hrefs
+            Method used to account for HTML tags, attempts to find hrefs.
 
             Args:
-                tag (str): The tag of the HTML element
-                attrs (dict): The attributes of the HTML element
+                tag (str): The tag of the HTML element.
+                attrs (dict): The attributes of the HTML element.
 
             Returns:
-                None
+                None.=
             """
             attrs = dict(attrs)
 
@@ -115,22 +115,23 @@ class HTMLHandler(IHandler):
     @staticmethod
     def parseText(content: Response) -> str:
         """
-        Extracts text from the response passed to the method
+        Extracts text from the response passed to the method.
+
         Args:
-            content (Response): A response received from the requests library with HTML content type
+            content (Response): A response received from the requests library with HTML content type.
 
         Returns:
-            str: The textual representation of the HTML page
+            str: The textual representation of the HTML page.
         """
         return BeautifulSoup(content.text, "html.parser").get_text()
 
     @staticmethod
     def get_hyperlinks(content: Response):
         """
-        Retrieves the hyperlinks found in the HTML document
+        Retrieves the hyperlinks found in the HTML document.
 
         Args:
-            content (Response): A response received from the request library with the html content type
+            content (Response): A response received from the request library with the html content type.
 
         Returns:
             None
@@ -152,14 +153,14 @@ class HTMLHandler(IHandler):
     @staticmethod
     def get_clean_hyperlinks(local_domain: str, content: Response) -> list[str]:
         """
-        Method used to get allowed hyperlinks
+        Method used to get allowed hyperlinks.
 
         Args:
-            local_domain (str): The domain of the current URL
-            content (Response): A response received from the request library with the html content type
+            local_domain (str): The domain of the current URL.
+            content (Response): A response received from the request library with the html content type.
 
         Returns:
-            list: A list of allowed hyperlinks found on the provided page
+            list: A list of allowed hyperlinks found on the provided page.
         """
         clean_links = []
         for link in set(HTMLHandler.get_hyperlinks(content)):
@@ -186,14 +187,15 @@ class HTMLHandler(IHandler):
     def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
         """
         Finds all allowed links on a given page and adds them to the Queue for workers to continue processing
+
         Args:
-            content (Response):  A response received from the request library with the html content type
-            local_domain (str): The domain of the current URL
+            content (Response):  A response received from the request library with the html content type.
+            local_domain (str): The domain of the current URL.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
             set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links
-            depth (int): the current depth of the crawl operation
-            baseDirectories: A list of accepted URL directories for the crawler to search and save
+            queue (Queue): The queue for the crawler to search new links.
+            depth (int): The current depth of the crawl operation.
+            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
 
         Returns:
 
@@ -204,10 +206,19 @@ class HTMLHandler(IHandler):
 
 class PDFHandler(IHandler):
     """
-    Handler for the crawler to use for PDF documents
+    Handler for the crawler to use for PDF documents.
     """
     @staticmethod
     def parseText(content: Response) -> str:
+        """
+        Extracts text from provided PDF files returned from the request library.
+
+        Args:
+            content (Response):  A response received from the request library with the PDF content type.
+
+        Returns:
+            str: The extracted textual representation of the PDF file.
+        """
         text = ""
         reader = PdfReader(BytesIO(content.content))
         for page in reader.pages:
@@ -215,7 +226,24 @@ class PDFHandler(IHandler):
         return text
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories):
+    def findLinks(content: Response, local_domain: str, seen: dict,
+                  queue: Queue, depth: int, baseDirectories: list[str]):
+        """
+        Finds all links within a PDF file and adds them to a queue for the workers to continue searching through.
+
+        Args:
+            content (Response): A response received from the request library with the PDF content type.
+            local_domain (str): The domain of the current URL being analyzed.
+            seen (dict):  A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
+            set as the manager for multiprocessing does not support the Set type.
+            queue (Queue): The queue for the crawler to search new links.
+            depth (int): The current depth of the crawl operation.
+            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
+
+        Returns:
+            None
+        """
+
         links = []
         reader = PdfReader(BytesIO(content.content))
         pages = len(reader.pages)

@@ -7,17 +7,46 @@ import urllib.request
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from html.parser import HTMLParser
+from queue import Queue
 
 HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
 PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
 
+
 class IHandler(ABC):
+    """
+    Interface created for different handlers, used to support polymorphism and handle multiple filetypes.
+    """
     @abstractmethod
     def parseText(content: Response) -> str:
+        """
+        Parse the content retrieved from a webpage
+
+        Args:
+            content (Response): A response object returned from the requests library
+        Returns:
+            str: The content represented in a textual format
+        """
         pass
 
     @abstractmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
+    def findLinks(content: Response, local_domain: str, seen: dict,
+                  queue: Queue, depth: int, baseDirectories: list[str]):
+        """
+        Method to find all non-blacklisted links from documents
+
+        Args:
+            content (Response): A response object returned from the requests library
+            local_domain (str): The net location of the URL
+            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
+            set as the manager for multiprocessing does not support the Set type
+            queue (Queue): The queue for the crawler to search new links
+            depth (int): The current depth of the crawl operation
+            baseDirectories (list): A list of accepted URLs for the crawler to search and save
+
+        Returns:
+            None
+        """
         pass
 
     @staticmethod

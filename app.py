@@ -12,7 +12,7 @@ import sys
 
 
 def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
-    '''
+    """
     Test function to show a static run through of the workflow of the application.  This function will create a new
     database collection crawl a webpage, create embeddings, save the embedding vectors and content, and perform a RAG
     prompt. To support modularity, the application ahs been designed with dependency injection in mind.
@@ -21,11 +21,11 @@ def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
         db (iVectorDB): A database object that conforms to the iDB interface
         embed (iEmbed): An embed object that conforms to the iEmbed interface
         model (iModel): A model object that conforms to the ICrawler interface
-    '''
+    """
     prompt = "What is CVE-2024-29943?"
 
 
-    db.createCollection("InitialTesting", 1536)
+    '''db.createCollection("InitialTesting", 1536)
 
     outputDir = "./data/"
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
@@ -43,7 +43,7 @@ def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
 
             os.remove(f'{root}/{fileName}')
 
-    db.saveToDB(embeddings, "InitialTesting")
+    db.saveToDB(embeddings, "InitialTesting")'''
 
     promptEmbedding = list(embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,

@@ -1,22 +1,27 @@
 from openai import OpenAI
 from .embedInterface import iEmbed
 from .embedPrepper import EmbedPrepper
-import requests
-from bs4 import BeautifulSoup
 
 class OpenAIEmbed(iEmbed):
     """
-    Impelementation of OpenAI's embedding model
+    Implementation of OpenAI's embedding model
     """
+    def __init__(self, model: str):
+        """
+        Constructor for openAIEmbed
+        Args:
+            model (str): The identifier for the model to be used. Model identifiers can be found
+            at https://platform.openai.com/docs/models/embeddings
+        """
+        self.client = OpenAI()
+        self.model = model
 
-    @staticmethod
-    def embedChunk(content: str, client: OpenAI) -> list:
+    def embedChunk(self, content: str) -> list:
         """
         Creates an embedding vector of a chunk of data.
 
         Args:
             content (str): A chunk of text to embed
-            client (OpenAI): An OpenAI client object used to make the embedding call
 
         Returns:
             list: An embedding vector representing the content
@@ -24,14 +29,13 @@ class OpenAIEmbed(iEmbed):
         TODO:
             Make client calls async to speed up the applications embedding process
         """
-        response = client.embeddings.create(
+        response = self.client.embeddings.create(
             input=content,
-            model="text-embedding-3-small"
+            model=self.model
         )
         return response.data[0].embedding
 
-    @staticmethod
-    def createEmbedding(content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> dict:
+    def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> dict:
         """
         Creates a collection of embeddings by chunking the provided content and embedding each of those chunks
 
@@ -49,13 +53,12 @@ class OpenAIEmbed(iEmbed):
             Improve the method by which text is chunked.  I believe this will be the biggest impact on results of the
             application.
         """
-        client = OpenAI()
         chunks = EmbedPrepper.chunkTextBySize(content, maxChunkSize, chunkOverlap, delimiter)
         embeddingMap = dict()
 
         for chunk in chunks:
             # print(chunk)
-            embeddingMap[chunk] = OpenAIEmbed.embedChunk(chunk, client)
+            embeddingMap[chunk] = self.embedChunk(chunk)
 
         return embeddingMap
 

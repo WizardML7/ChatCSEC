@@ -64,8 +64,7 @@ class Crawler(iCrawler):
     def crawl(url: str, maxDepth: int,baseDirectories: list[str] = None, cores: int = 2,
               outputDirectory: str = os.path.dirname(os.path.realpath(__file__)),
               urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set:
-        '''
-        Method to start crawling webpoages and downloading related content.
+        """Method to start crawling webpoages and downloading related content.
 
         Notes:
             It is important to use theContentRegexString argument in order to properly sanitize irrelevant information
@@ -95,7 +94,8 @@ class Crawler(iCrawler):
             >>>     urlRegexString=r'.*customer-stories.*a.*',
             >>>     contentRegexString=r'(?:.*Customer stories)(?P<content>.*)(?:ResearchOverviewIndexGP.*)',
             >>>     matchSkip=True)
-        '''
+        """
+
         if urlRegexString:
             urlRegex = re.compile(urlRegexString)
 

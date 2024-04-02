@@ -15,7 +15,8 @@ PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
 
 class IHandler(ABC):
     """
-    Interface created for different handlers, used to support polymorphism and handle multiple filetypes.
+    Interface created for different handlers to be used by the crawler, used to support polymorphism and handle
+    multiple filetypes.
     """
     @staticmethod
     @abstractmethod
@@ -81,6 +82,9 @@ class IHandler(ABC):
 
 
 class HTMLHandler(IHandler):
+    """
+    HTML handler for the crawler to use for processing documents.
+    """
     class HyperlinkParser(HTMLParser):
         def __init__(self):
             super().__init__()
@@ -153,6 +157,9 @@ class HTMLHandler(IHandler):
 
 
 class PDFHandler(IHandler):
+    """
+    Handler for the crawler to use for PDF documents
+    """
     @staticmethod
     def parseText(content: Response) -> str:
         text = ""

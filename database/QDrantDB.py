@@ -47,7 +47,7 @@ class QDrantVectorDB(iVectorDB):
         """
         return [
             PointStruct(id=idx,
-                        vector={"text embedding": embedding},
+                        vector={"text embedding": embedding.result()},
                         payload={"text": text},
                         )
             for idx, (embedding, text) in enumerate(zip(texts.values(), texts.keys()))
@@ -107,7 +107,7 @@ class QDrantVectorDB(iVectorDB):
         # TODO: make sure to only search collections of the proper size
         for collection in collectionNames:
             results.append(self.client.search(collection_name=collection,
-                                              query_vector=("text embedding", embedding),
+                                              query_vector=("text embedding", embedding.result()),
                                               limit=maxHits,
                                               score_threshold=minSimilarity
                                               ))

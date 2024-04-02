@@ -6,6 +6,7 @@ from model.modelInterface import iModel
 from model.GPT import GPT
 from scraper.iCrawler import iCrawler
 from scraper.crawler import Crawler
+from multiprocessing import cpu_count
 
 import asyncio
 import os
@@ -31,10 +32,10 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     db.createCollection("InitialTesting", 1536)
 
     outputDir = "./data/"
-    '''crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
+    crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
                   1,
-                  cores=4,
-                  outputDirectory=outputDir)'''
+                  cores=cpu_count(),
+                  outputDirectory=outputDir)
 
     outputDir = "./data/"
     embeddings = dict()
@@ -45,7 +46,7 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
                 # chunk the contents of the file
                 embeddings.update(await embed.createEmbedding(file.read()))
 
-            #os.remove(f'{root}/{fileName}')
+            os.remove(f'{root}/{fileName}')
 
     db.saveToDB(embeddings, "InitialTesting")
 

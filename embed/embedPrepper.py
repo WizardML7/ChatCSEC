@@ -45,10 +45,9 @@ class EmbedPrepper:
         Returns:
             str: The content string stripped of newlines
         """
-        content = content.replace("\n", " ")\
-                    .replace("\r", " ")\
-                    .replace("\xa0", " ")
+        content = content.replace("\xa0", "\n")\
+                         .replace("\r", "\n")
 
-        while content.find("  ") != -1:
-            content = content.replace("  ", " ")
+        while content.find("\n\n") != -1:
+            content = content.replace("\n\n", "\n")
         return content

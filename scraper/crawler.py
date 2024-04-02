@@ -2,14 +2,14 @@ import requests
 from pathvalidate import sanitize_filepath
 from urllib.parse import urlparse
 import os
-from .iCrawler import ICrawler
+from .iCrawler import iCrawler
 from multiprocessing import Pool, Manager
 from .handlers import PDFHandler, HTMLHandler
 import traceback
 import re
 from queue import Empty
 
-class Crawler(ICrawler):
+class Crawler(iCrawler):
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int,maxDepth: int, baseDirectory: str, queue, seen,
                   outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
@@ -117,7 +117,7 @@ class Crawler(ICrawler):
         return foundLinks
 
 
-def testInterface(crawler: ICrawler):
+def testInterface(crawler: iCrawler):
     # OpenAI Test
     Crawler.crawl("https://openai.com/", 1, cores=4)
     # OpenAI Customer Stories test

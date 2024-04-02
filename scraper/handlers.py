@@ -17,16 +17,16 @@ class IHandler(ABC):
         pass
 
     @abstractmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
         pass
 
     @staticmethod
     @abstractmethod
-    def addLinks(links: list[str], seen, queue, depth, baseDirectory):
-        if not baseDirectory:
-            baseDirectory = ["http"]
+    def addLinks(links: list[str], seen, queue, depth, baseDirectories):
+        if not baseDirectories:
+            baseDirectories = ["http"]
         for link in links:
-            if link not in seen.keys() and link.startswith(tuple(baseDirectory)):
+            if link not in seen.keys() and link.startswith(tuple(baseDirectories)):
                 queue.put((link, depth + 1))
                 seen[link] = 1
 
@@ -99,9 +99,9 @@ class HTMLHandler(IHandler):
         return list(set(clean_links))
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
         links = HTMLHandler.get_domain_hyperlinks(local_domain, content)
-        HTMLHandler.addLinks(links, seen, queue, depth, baseDirectory)
+        HTMLHandler.addLinks(links, seen, queue, depth, baseDirectories)
 
 
 class PDFHandler(IHandler):
@@ -114,7 +114,7 @@ class PDFHandler(IHandler):
         return text
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectory):
+    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories):
         links = []
         reader = PdfReader(BytesIO(content.content))
         pages = len(reader.pages)
@@ -132,5 +132,5 @@ class PDFHandler(IHandler):
                     if uri in u[ank].keys() and not uri.startswith(tuple(PROTOCOL_BLACKLIST)):
                         links.append(u[ank][uri])
 
-        PDFHandler.addLinks(links, seen, queue, depth, baseDirectory)
+        PDFHandler.addLinks(links, seen, queue, depth, baseDirectories)
 

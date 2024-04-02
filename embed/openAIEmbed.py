@@ -36,7 +36,7 @@ class OpenAIEmbed(iEmbed):
         )
         return response.data[0].embedding
 
-    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> dict:
+    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str=["\n\n", "\n", " ", ""]) -> dict:
         """
         Creates a collection of embeddings by chunking the provided content and embedding each of those chunks
 
@@ -50,10 +50,10 @@ class OpenAIEmbed(iEmbed):
             dict: a dictionary of all split chunks as keys and corresponding embeddings as values.
 
         TODO:
-            Investigate the whitespace for chunking.
             Improve the method by which text is chunked.  I believe this will be the biggest impact on results of the
             application.
         """
+        content = EmbedPrepper.removeExtraWhitespace(content)
         chunks = EmbedPrepper.chunkTextBySize(content, maxChunkSize, chunkOverlap, delimiter)
         embeddingMap = dict()
 

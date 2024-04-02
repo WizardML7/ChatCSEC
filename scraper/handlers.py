@@ -65,7 +65,7 @@ class IHandler(ABC):
             set as the manager for multiprocessing does not support the Set type.
             queue (Queue): The queue for the crawler to search new links
             depth (int): The current depth of the crawl operation
-            baseDirectories (list): A list of accepted URLs for the crawler to search and save
+            baseDirectories (list): A list of accepted URL directories for the crawler to search and save
 
 
         Returns:
@@ -86,13 +86,26 @@ class HTMLHandler(IHandler):
     HTML handler for the crawler to use for processing documents.
     """
     class HyperlinkParser(HTMLParser):
+        """
+        Subclass used to handle hyperlink parsing for HTML documents
+        """
         def __init__(self):
             super().__init__()
             # Create a list to store the hyperlinks
             self.hyperlinks = []
 
         # Override the HTMLParser's handle_starttag method to get the hyperlinks
-        def handle_starttag(self, tag, attrs):
+        def handle_starttag(self, tag: str, attrs: dict):
+            """
+            Method used to account for HTML tags, attempts to find hrefs
+
+            Args:
+                tag (str): The tag of the HTML element
+                attrs (dict): The attributes of the HTML element
+
+            Returns:
+                None
+            """
             attrs = dict(attrs)
 
             # If the tag is an anchor tag and it has an href attribute, add the href attribute to the list of hyperlinks
@@ -101,10 +114,27 @@ class HTMLHandler(IHandler):
 
     @staticmethod
     def parseText(content: Response) -> str:
+        """
+        Extracts text from the response passed to the method
+        Args:
+            content (Response): A response received from the requests library with HTML content type
+
+        Returns:
+            str: The textual representation of the HTML page
+        """
         return BeautifulSoup(content.text, "html.parser").get_text()
 
     @staticmethod
-    def get_hyperlinks(content):
+    def get_hyperlinks(content: Response):
+        """
+        Retrieves the hyperlinks found in the HTML document
+
+        Args:
+            content (Response): A response received from the request library with the html content type
+
+        Returns:
+            None
+        """
         # Try to open the URL and read the HTML
         try:
             html = content.content.decode('utf-8')
@@ -120,19 +150,21 @@ class HTMLHandler(IHandler):
 
     # Function to get the hyperlinks from a URL that are within the same domain
     @staticmethod
-    def get_domain_hyperlinks(local_domain, content):
+    def get_clean_hyperlinks(local_domain: str, content: Response) -> list[str]:
+        """
+        Method used to get allowed hyperlinks
+
+        Args:
+            local_domain (str): The domain of the current URL
+            content (Response): A response received from the request library with the html content type
+
+        Returns:
+            list: A list of allowed hyperlinks found on the provided page
+        """
         clean_links = []
         for link in set(HTMLHandler.get_hyperlinks(content)):
-            clean_link = None
-
             # If the link is a URL, check if it is within the same domain
             if re.search(HTTP_URL_PATTERN, link):
-                # Parse the URL and check if the domain is the same
-                url_obj = urlparse(link)
-
-                # Makes sure new url is on the same domain
-                # if url_obj.netloc == local_domain:
-                #    clean_link = link
                 clean_link = link
             # If the link is not a URL, check if it is a relative link
             else:
@@ -152,7 +184,21 @@ class HTMLHandler(IHandler):
 
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
-        links = HTMLHandler.get_domain_hyperlinks(local_domain, content)
+        """
+        Finds all allowed links on a given page and adds them to the Queue for workers to continue processing
+        Args:
+            content (Response):  A response received from the request library with the html content type
+            local_domain (str): The domain of the current URL
+            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
+            set as the manager for multiprocessing does not support the Set type.
+            queue (Queue): The queue for the crawler to search new links
+            depth (int): the current depth of the crawl operation
+            baseDirectories: A list of accepted URL directories for the crawler to search and save
+
+        Returns:
+
+        """
+        links = HTMLHandler.get_clean_hyperlinks(local_domain, content)
         HTMLHandler.addLinks(links, seen, queue, depth, baseDirectories)
 
 

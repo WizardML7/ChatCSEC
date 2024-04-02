@@ -2,7 +2,18 @@ from .modelInterface import iModel
 from openai import OpenAI
 from os import environ
 class GPT(iModel):
+    """
+    Implementation of OpenAI's ChatGPT model.  Requires the environment variable "OPENAI_API_KEY" to be set.
+    """
     def __init__(self, systemMessage: str, model: str):
+        """
+        Creates a client to communicate with the OpenAI API using the environment variable API key.
+
+        Args:
+            systemMessage (str): The system message to provide to the completions model.
+            model (str):  The model identifier for the client to use.  A current list can be
+            found at https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo.
+        """
         self.client = OpenAI(api_key=environ["OPENAI_API_KEY"])
         self.model = model
         self.messages = [

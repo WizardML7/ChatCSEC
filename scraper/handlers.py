@@ -53,17 +53,22 @@ class IHandler(ABC):
 
     @staticmethod
     @abstractmethod
-    def addLinks(links: list[str], seen, queue, depth, baseDirectories):
+    def addLinks(links: list[str], seen: dict, queue: Queue, depth: int, baseDirectories: list[str]):
         """
+        Generic method for classes to add found links to the queue for workers to process later. The method will first
+        check to see if any of the links have already been seen before adding to the queue
 
         Args:
-            links:
-            seen:
-            queue:
-            depth:
-            baseDirectories:
+            links (list): list of URLs to attempt to add to the worker queue.
+            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
+            set as the manager for multiprocessing does not support the Set type.
+            queue (Queue): The queue for the crawler to search new links
+            depth (int): The current depth of the crawl operation
+            baseDirectories (list): A list of accepted URLs for the crawler to search and save
+
 
         Returns:
+            None
 
         """
         if not baseDirectories:

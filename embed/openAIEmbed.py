@@ -50,7 +50,6 @@ class OpenAIEmbed(iEmbed):
             dict: a dictionary of all split chunks as keys and corresponding embeddings as values.
 
         TODO:
-            Investigate the whitespace for chunking.
             Improve the method by which text is chunked.  I believe this will be the biggest impact on results of the
             application.
         """

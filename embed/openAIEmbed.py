@@ -1,6 +1,10 @@
-from openai import OpenAI
+import os
+
+from openai import AsyncOpenAI
 from .embedInterface import iEmbed
 from .embedPrepper import EmbedPrepper
+import asyncio
+import sys
 
 class OpenAIEmbed(iEmbed):
     """
@@ -13,10 +17,10 @@ class OpenAIEmbed(iEmbed):
             model (str): The identifier for the model to be used. Model identifiers can be found
             at https://platform.openai.com/docs/models/embeddings
         """
-        self.client = OpenAI()
+        self.client = AsyncOpenAI()
         self.model = model
 
-    def embedChunk(self, content: str) -> list:
+    async def embedChunk(self, content: str) -> list:
         """
         Creates an embedding vector of a chunk of data.
 
@@ -25,17 +29,14 @@ class OpenAIEmbed(iEmbed):
 
         Returns:
             list: An embedding vector representing the content
-
-        TODO:
-            Make client calls async to speed up the applications embedding process
         """
-        response = self.client.embeddings.create(
+        response = await self.client.embeddings.create(
             input=content,
             model=self.model
         )
         return response.data[0].embedding
 
-    def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> dict:
+    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str="\n") -> dict:
         """
         Creates a collection of embeddings by chunking the provided content and embedding each of those chunks
 
@@ -58,8 +59,9 @@ class OpenAIEmbed(iEmbed):
 
         for chunk in chunks:
             # print(chunk)
-            embeddingMap[chunk] = self.embedChunk(chunk)
+            embeddingMap[chunk] = asyncio.ensure_future(self.embedChunk(chunk))
 
+        await asyncio.gather(*list(embeddingMap.values()))
         return embeddingMap
 
 

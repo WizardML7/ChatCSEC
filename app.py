@@ -6,12 +6,15 @@ from model.modelInterface import iModel
 from model.GPT import GPT
 from scraper.iCrawler import iCrawler
 from scraper.crawler import Crawler
+from multiprocessing import cpu_count
 
+import asyncio
 import os
 import sys
+from time import perf_counter
 
 
-def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
+async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     """
     Test function to show a static run through of the workflow of the application.  This function will create a new
     database collection crawl a webpage, create embeddings, save the embedding vectors and content, and perform a RAG
@@ -24,34 +27,36 @@ def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     """
     prompt = "What is CVE-2024-29943?"
 
+    start = perf_counter()
 
-    '''db.createCollection("InitialTesting", 1536)
+    db.createCollection("InitialTesting", 1536)
 
     outputDir = "./data/"
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
                   1,
-                  cores=4,
+                  cores=cpu_count(),
                   outputDirectory=outputDir)
 
+    outputDir = "./data/"
     embeddings = dict()
 
     for root, _, fileNames in os.walk(f"{outputDir}/text/"):
         for fileName in fileNames:
             with open(f'{root}/{fileName}', 'r', encoding="utf8") as file:
                 # chunk the contents of the file
-                embeddings.update(embed.createEmbedding(file.read()))
+                embeddings.update(await embed.createEmbedding(file.read()))
 
             os.remove(f'{root}/{fileName}')
 
-    db.saveToDB(embeddings, "InitialTesting")'''
+    db.saveToDB(embeddings, "InitialTesting")
 
-    promptEmbedding = list(embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
+    promptEmbedding = list((await embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,
-                                                 delimiter="\n"*50).values())[0]
+                                                 delimiter="\n"*50)).values())[0]
     hydeResponse = model.hydePrompt(prompt)
-    hydeEmbedding = list(embed.createEmbedding(hydeResponse,                                                 maxChunkSize=sys.maxsize,
+    hydeEmbedding = list((await embed.createEmbedding(hydeResponse, maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,
-                                                 delimiter="\n"*50).values())[0]
+                                                 delimiter="\n"*50)).values())[0]
 
     promptResults = db.queryDB(promptEmbedding, collectionNames=["InitialTesting"], maxHits=50)
     promptResponse = model.prompt(promptResults, prompt)
@@ -59,9 +64,14 @@ def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     hydeResponse = model.prompt(hydeResults, prompt)
 
     print(f"Prompt Response:\n{promptResponse}\nHyde Response:\n{hydeResponse}")
+    print(f"Time: {perf_counter() - start}")
 
 if __name__ == "__main__":
-    run(QDrantVectorDB("129.21.21.11"),
-        OpenAIEmbed("text-embedding-3-small"),
-        GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
-        Crawler)
+    # Async is currently bugged on windows platforms of the current version.  This workaround changes to selecter event loop
+    if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    asyncio.run(run(QDrantVectorDB("129.21.21.11"),
+                    OpenAIEmbed("text-embedding-3-small"),
+                    GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
+                    Crawler))

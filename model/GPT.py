@@ -2,7 +2,18 @@ from .modelInterface import iModel
 from openai import OpenAI
 from os import environ
 class GPT(iModel):
+    """
+    Implementation of OpenAI's ChatGPT model.  Requires the environment variable "OPENAI_API_KEY" to be set.
+    """
     def __init__(self, systemMessage: str, model: str):
+        """
+        Creates a client to communicate with the OpenAI API using the environment variable API key.
+
+        Args:
+            systemMessage (str): The system message to provide to the completions model.
+            model (str):  The model identifier for the client to use.  A current list can be
+            found at https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo.
+        """
         self.client = OpenAI(api_key=environ["OPENAI_API_KEY"])
         self.model = model
         self.messages = [
@@ -10,7 +21,20 @@ class GPT(iModel):
         ]
 
     def prompt(self, context: str, prompt: str) -> str:
-        # May be able to remove context and instruction section for prompts that come after to save tokens
+        """
+        Method to prompt the language model with a statement or question, while providing context for
+        improved responses.
+
+        Args:
+            context (str): A section of text that the model may find useful to more adequately respond to the prompt.
+            prompt (str): A string to ask the language model with.
+
+        Returns:
+            None
+
+        TODO:
+            Remove context from past user prompts to save on token space.
+        """
         self.messages.append({"role": "user",
                               "content": f"CONTEXT:\n"
                                          f"{context}\n"
@@ -34,6 +58,21 @@ class GPT(iModel):
         return response.choices[0].message.content
 
     def hydePrompt(self, prompt: str) -> str:
+        """
+        Creates a hypothetical answer to a prompt.  This answer can be used to gain more relavance
+        during semantic searches.
+
+        Notes:
+            The model is instructed to create a hypothetical and fake answer, this answer should not be provided to the
+            user, however should be embedded and used to search the vector database.  Research HyDE (Hypothetical
+            Document Embedding) for more information
+
+        Args:
+            prompt (str): A question for the model to make a hypothetical response to.
+
+        Returns:
+            str: A hypothetical answer to the prompt provided
+        """
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[

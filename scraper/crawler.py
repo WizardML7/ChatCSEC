@@ -1,18 +1,44 @@
+import queue
+
 import requests
 from pathvalidate import sanitize_filepath
 from urllib.parse import urlparse
 import os
-from .iCrawler import ICrawler
+from .iCrawler import iCrawler
 from multiprocessing import Pool, Manager
 from .handlers import PDFHandler, HTMLHandler
 import traceback
 import re
 from queue import Empty
 
-class Crawler(ICrawler):
+class Crawler(iCrawler):
     @staticmethod
-    def crawlPage(local_domain: str, url: str, depth: int,maxDepth: int, baseDirectory: str, queue, seen,
-                  outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
+    def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectories: list[str], queue: queue.Queue,
+                  seen,outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
+        """
+        Crawls an individual page, extracting links, extracting and parsing content, and saving the content to a file
+
+        Args:
+            local_domain(str): The domain of the web address, used to create a directory and save files to the
+            respective directories of where they were obtained from.
+            url (str):  The URL of the page to crawl
+            depth (int): The current depth of the overall crawl
+            maxDepth (int): The maximum depth the crawling operation is intended to go
+            baseDirectories (list): A list of URL directories that are acceptable for the crawler to download links
+            from.  If it is set to None, all URLs will be accepted
+            queue (manager.Queue): A shared queue used between the workers in the pool to queue up and scan
+            different URLs
+            seen (manager.Dict): A shared dictionary used between workers to in the pool to know which URLs have already
+            been visited
+            outputDirectory (str): The output directory for the crawl operation
+            recordUrl (bool): If True, the URL will be saved to a file
+            contentRegex (re.Pattern): A regex pattern to match documents with to extract the desired content for
+            writing to a file.  If set to None, all content will be recorded
+            matchSkip (bool): If True and contentRegex is not None, then skip files that do not match the content regex
+
+        Returns:
+            None
+        """
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
 
@@ -58,12 +84,44 @@ class Crawler(ICrawler):
 
         # Get the hyperlinks from the URL and add them to the queue
         if depth < maxDepth:
-            handlers[contentType].findLinks(content, local_domain, seen, queue, depth, baseDirectory)
+            handlers[contentType].findLinks(content, local_domain, seen, queue, depth, baseDirectories)
 
     @staticmethod
-    def crawl(url: str, maxDepth: int,baseDirectory: list[str] = None, cores: int = 2,
+    def crawl(url: str, maxDepth: int,baseDirectories: list[str] = None, cores: int = 2,
               outputDirectory: str = os.path.dirname(os.path.realpath(__file__)),
               urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set:
+        """Method to start crawling webpoages and downloading related content.
+
+        Notes:
+            It is important to use theContentRegexString argument in order to properly sanitize irrelevant information
+            such as website navbars, headers and footers.  This content can be detrimental to the results of the
+            embedding and retrieval in the RAG prompts, as well as increasing the token burden on API calls.
+
+        Args:
+            maxDepth (int): The max depth that the crawler should follow links to
+            baseDirectories (list): A list of URLs that specify the allowed url directories that the crawler will pull
+            webpages from.  If this is set to None, all URLs will be accepted.
+            cores (int): The amount of CPU cores for the crawler to use
+            outputDirectory (str): A path pointing to the output directory for the files downloaded and processed
+            urlRegexString (str): A string representing a regex to match URLs with.  If set to None, all URLs will be
+            accepted for download
+            contentRegexString (str): A regex used to extract content out of webpages.  It must follow the syntax of
+            (?:.LOOKABEHIND)(?P<content>.*)(?:LOOKBEHIND). If set to None, all content will be ingested
+            matchSkip (bool): If set to True, any content that does not match the contentRegexString will not be
+            downloaded. If contentRegexString is set to None, this variable is not used.
+
+        Returns:
+            Set: A set of links found by the crawler.
+
+        Examples:
+            >>> Crawler.crawl("https://openai.com/customer-stories", 1,
+            >>>     cores=4, baseDirectory=["https://openai.com/customer-stories"],
+            >>>     outputDirectory=os.path.dirname(os.path.realpath(__file__)) + "/test/",
+            >>>     urlRegexString=r'.*customer-stories.*a.*',
+            >>>     contentRegexString=r'(?:.*Customer stories)(?P<content>.*)(?:ResearchOverviewIndexGP.*)',
+            >>>     matchSkip=True)
+        """
+
         if urlRegexString:
             urlRegex = re.compile(urlRegexString)
 
@@ -107,7 +165,7 @@ class Crawler(ICrawler):
                         os.mkdir(outputDirectory + "/text/" + local_domain + "/")
 
                     results.append(pool.apply_async(Crawler.crawlPage,
-                                                    (local_domain, url, depth, maxDepth, baseDirectory, queue, seen,
+                                                    (local_domain, url, depth, maxDepth, baseDirectories, queue, seen,
                                                      outputDirectory, recordURL, contentRegex, matchSkip)))
                 except Empty:
                     results = [res for res in results if not res.ready()]
@@ -117,7 +175,7 @@ class Crawler(ICrawler):
         return foundLinks
 
 
-def testInterface(crawler: ICrawler):
+def testInterface(crawler: iCrawler):
     # OpenAI Test
     Crawler.crawl("https://openai.com/", 1, cores=4)
     # OpenAI Customer Stories test

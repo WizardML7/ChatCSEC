@@ -17,6 +17,7 @@ class IHandler(ABC):
     """
     Interface created for different handlers, used to support polymorphism and handle multiple filetypes.
     """
+    @staticmethod
     @abstractmethod
     def parseText(content: Response) -> str:
         """
@@ -29,6 +30,7 @@ class IHandler(ABC):
         """
         pass
 
+    @staticmethod
     @abstractmethod
     def findLinks(content: Response, local_domain: str, seen: dict,
                   queue: Queue, depth: int, baseDirectories: list[str]):
@@ -52,6 +54,18 @@ class IHandler(ABC):
     @staticmethod
     @abstractmethod
     def addLinks(links: list[str], seen, queue, depth, baseDirectories):
+        """
+
+        Args:
+            links:
+            seen:
+            queue:
+            depth:
+            baseDirectories:
+
+        Returns:
+
+        """
         if not baseDirectories:
             baseDirectories = ["http"]
         for link in links:

@@ -10,7 +10,20 @@ class GPT(iModel):
         ]
 
     def prompt(self, context: str, prompt: str) -> str:
-        # May be able to remove context and instruction section for prompts that come after to save tokens
+        """
+        Method to prompt the language model with a statement or question, while providing context for
+        improved responses.
+
+        Args:
+            context (str): A section of text that the model may find useful to more adequately respond to the prompt.
+            prompt (str): A string to ask the language model with.
+
+        Returns:
+            None
+
+        TODO:
+            Remove context from past user prompts to save on token space.
+        """
         self.messages.append({"role": "user",
                               "content": f"CONTEXT:\n"
                                          f"{context}\n"
@@ -34,6 +47,21 @@ class GPT(iModel):
         return response.choices[0].message.content
 
     def hydePrompt(self, prompt: str) -> str:
+        """
+        Creates a hypothetical answer to a prompt.  This answer can be used to gain more relavance
+        during semantic searches.
+
+        Notes:
+            The model is instructed to create a hypothetical and fake answer, this answer should not be provided to the
+            user, however should be embedded and used to search the vector database.  Research HyDE (Hypothetical
+            Document Embedding) for more information
+
+        Args:
+            prompt (str): A question for the model to make a hypothetical response to.
+
+        Returns:
+            str: A hypothetical answer to the prompt provided
+        """
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[

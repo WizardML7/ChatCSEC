@@ -5,6 +5,10 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 class EmbedPrepper:
     """
     A collection of methods used to prepare text to be embedded by embedding models
+
+    TODO:
+        Find better methods of chunking.  Ideally finding a way to chunk by semantic relevance would produce the best
+        effects.  Mi
     """
     @staticmethod
     def chunkTextBySize(content: str, maxChunkSize: int=800,

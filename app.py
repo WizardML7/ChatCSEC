@@ -28,8 +28,8 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     prompt = "What is CVE-2024-29943?"
 
     start = perf_counter()
-
-    db.createCollection("InitialTesting", 1536)
+    collectionName = "FakeReports"
+    db.createCollection(collectionName, 1536)
 
     outputDir = "./data/"
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
@@ -37,7 +37,6 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
                   cores=4,
                   outputDirectory=outputDir)
 
-    outputDir = "./data/"
     embeddings = dict()
 
     for root, _, fileNames in os.walk(f"{outputDir}/text/"):
@@ -48,7 +47,7 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
 
             os.remove(f'{root}/{fileName}')
 
-    db.saveToDB(embeddings, "InitialTesting")
+    db.saveToDB(embeddings, collectionName)
 
     promptEmbedding = list((await embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,
@@ -58,9 +57,9 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
                                                  chunkOverlap=0,
                                                  delimiter="\n"*50)).values())[0]
 
-    promptResults = db.queryDB(promptEmbedding, collectionNames=["InitialTesting"], maxHits=50)
+    promptResults = db.queryDB(promptEmbedding, collectionNames=[collectionName], maxHits=50)
     promptResponse = model.prompt(promptResults, prompt)
-    hydeResults = db.queryDB(hydeEmbedding, collectionNames=["InitialTesting"], maxHits=50)
+    hydeResults = db.queryDB(hydeEmbedding, collectionNames=[collectionName], maxHits=50)
     hydeResponse = model.prompt(hydeResults, prompt)
 
     print(f"Prompt Response:\n{promptResponse}\nHyde Response:\n{hydeResponse}")

@@ -8,6 +8,9 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from html.parser import HTMLParser
 from queue import Queue
+from docx import Document
+from docx.table import Table
+from docx.text.paragraph import Paragraph
 
 HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
 PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
@@ -263,3 +266,48 @@ class PDFHandler(IHandler):
 
         PDFHandler.addLinks(links, seen, queue, depth, baseDirectories)
 
+
+class WordHandler(IHandler):
+    """
+    Handler for the crawler to use to parse docx files
+    """
+    @staticmethod
+    def parseText(content) -> str:
+        """
+        Extract the text from the docx document
+
+        Args:
+            content: A response received from the request library with the docx content type.
+
+        Returns:
+            str: The text inside of the docx file
+        """
+        document = Document(BytesIO(content.content))
+        text = ''
+        for obj in document.iter_inner_content():
+            if type(obj) == Table:
+                widths = dict()
+                #Get max width of each column
+                for index in range(len(obj.columns)):
+                    for cell in obj.column_cells(index):
+                        if cell.width not in widths.keys():
+                            widths[cell.width] = len(cell.text.replace("\n", " "))
+                        elif len(cell.text) > widths[cell.width]:
+                            widths[cell.width] = len(cell.text.replace("\n", " "))
+                #Add each cell and format
+                for index in range(len(obj.rows)):
+                    text += "|"
+                    for cell in obj.row_cells(index):
+                        stripped = cell.text.replace("\n", " ")
+                        text += f'{stripped:<{widths[cell.width]}}' + "|"
+                    text += "\n"
+            elif type(obj) == Paragraph:
+                text += obj.text + "\n\n"
+
+        return text
+
+    #TODO: Finish this
+    @staticmethod
+    def findLinks(content: Response, local_domain: str, seen: dict,
+                  queue: Queue, depth: int, baseDirectories: list[str]):
+        pass

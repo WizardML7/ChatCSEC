@@ -11,6 +11,7 @@ from queue import Queue
 from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
+from docx.opc.constants import RELATIONSHIP_TYPE as RELTYPES
 
 HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
 PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
@@ -310,4 +311,27 @@ class WordHandler(IHandler):
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen: dict,
                   queue: Queue, depth: int, baseDirectories: list[str]):
-        pass
+        """
+        Finds all links within a docx file and adds them to a queue for the workers to continue searching through.
+
+        Args:
+            content (Response): A response received from the request library with the PDF content type.
+            local_domain (str): The domain of the current URL being analyzed.
+            seen (dict):  A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
+            set as the manager for multiprocessing does not support the Set type.
+            queue (Queue): The queue for the crawler to search new links.
+            depth (int): The current depth of the crawl operation.
+            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
+
+        Returns:
+            None
+        """
+        document = Document(BytesIO(content.content))
+        links = []
+        # undocumented in api reference, black magic in the docx library
+        # rels comes from
+        for relation in document.part.rels:
+            if relation.reltype == RELTYPES.HYPERLINK:
+                links.append(relation.target_part())
+
+        WordHandler.addLinks(links, seen, queue, depth, baseDirectories)

@@ -1,6 +1,8 @@
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import PointStruct
 from .DBInterface import iVectorDB
+from grpc._channel import _InactiveRpcError
+
 class QDrantVectorDB(iVectorDB):
     """
     Class representing a connection to an instance of a QDrant Vector Database
@@ -25,13 +27,20 @@ class QDrantVectorDB(iVectorDB):
         Returns:
             None
         """
-        self.client.recreate_collection(
-            collection_name=collectionName,
-            vectors_config={"text embedding" : models.VectorParams(
-                size=size,
-                distance=models.Distance.COSINE
-            )}
-        )
+        try:
+            self.client.create_collection(
+                collection_name=collectionName,
+                vectors_config={"text embedding": models.VectorParams(
+                    size=size,
+                    distance=models.Distance.COSINE
+                )}
+            )
+        except _InactiveRpcError as error:
+            if error.details() == f"Wrong input: Collection `{collectionName}` already exists!":
+                pass
+            else:
+                raise error
+
 
 
     def convertToPoints(self, texts: dict) -> list[PointStruct]:

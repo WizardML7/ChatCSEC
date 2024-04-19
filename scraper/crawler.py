@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import os
 from .iCrawler import iCrawler
 from multiprocessing import Pool, Manager
-from .handlers import PDFHandler, HTMLHandler
+from .handlers import *
 import traceback
 import re
 from queue import Empty
@@ -45,7 +45,8 @@ class Crawler(iCrawler):
         # Handler Mappings
         handlers = {
             "application/pdf": PDFHandler,
-            "text/html": HTMLHandler
+            "text/html": HTMLHandler,
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": WordHandler
         }
 
         content = requests.get(url)

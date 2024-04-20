@@ -7,8 +7,8 @@ class iCrawler(ABC):
     should be written to conform to this interface in order to function properly with the rest of the application."
     """
     @abstractmethod
-    def crawl(url: str, maxDepth: int, baseDirectories: list[str], cores: int, outputDirectory: str, urlRegexString: str,
-              contentRegexString: str, matchSkip: bool) -> set:
+    def crawl(url: str, maxDepth: int, baseDirectories: list[str], cores: int, outputDirectory: str,
+              urlRegexString: str, contentRegexString: str, matchSkip: bool) -> set[str]:
         """Method to start crawling webpoages and downloading related content.
 
         Notes:
@@ -18,8 +18,8 @@ class iCrawler(ABC):
 
         Args:
             maxDepth (int): The max depth that the crawler should follow links to
-            baseDirectories (list): A list of URLs that specify the allowed url directories that the crawler will pull
-                webpages from.  If this is set to None, all URLs will be accepted.
+            baseDirectories (list[str]): A list of URLs that specify the allowed url directories that the crawler will
+                pull webpages from.  If this is set to None, all URLs will be accepted.
             cores (int): The amount of CPU cores for the crawler to use
             outputDirectory (str): A path pointing to the output directory for the files downloaded and processed
             urlRegexString (str): A string representing a regex to match URLs with.  If set to None, all URLs will be
@@ -30,7 +30,7 @@ class iCrawler(ABC):
                 downloaded. If contentRegexString is set to None, this variable is not used.
 
         Returns:
-            Set: A set of links found by the crawler.
+            Set[str]: A set of links found by the crawler.
 
         Examples:
             >>> Crawler.crawl("https://openai.com/customer-stories", 1,

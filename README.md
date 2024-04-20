@@ -37,3 +37,10 @@ Keeping the model up to date with the latest information can be a time-consuming
 ## Installation for Developers
 
 ## Usage
+
+## Documentation Generation 
+To build the documentation with Sphinx follow these steps:
+1) If there are no rst files, or the rst files need to be updated:
+   Save the rst files you wish to carry over such as index.rst.
+   Run `sphinx-apidoc -o docs ChatCSEC` from the root directory.  
+2) Use the makefile in the docs directory to generate the HTML, Latex, EPub, etc. format of documentation preferred. The documentation will be generated in `/docs/_build/`.

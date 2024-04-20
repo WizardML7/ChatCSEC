@@ -6,16 +6,18 @@ class iEmbed(ABC):
     polymorphism throughout the application.
     """
     @abstractmethod
-    def createEmbedding(content: str, maxChunkSize: int, chunkOverlap: int, delimiter: list) -> dict:
+    def createEmbedding(content: str, maxChunkSize: int, chunkOverlap: int,
+                        delimiter: list[str]) -> dict[str, list[float]]:
         """
         Takes in a string, chunks the string and embeds the chunks.
+
         Args:
             content (str): The string to be embedded.
             maxChunkSize (int): The max size chunks should be.
             chunkOverlap (int): The overlap between chunks.
-            delimiter (list): A list of delimiters that the splitter should chunk on.
+            delimiter (list[str]): A list of delimiters that the splitter should chunk on.
 
         Returns:
-            dict: a dictionary of all split chunks as keys and corresponding embeddings as values.
+            dict[str, list[float]]: a dictionary of all split chunks as keys and corresponding embeddings as values.
         """
         pass

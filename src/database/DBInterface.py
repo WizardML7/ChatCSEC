@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from qdrant_client.http.models import ScoredPoint
 
 class iVectorDB(ABC):
     """
@@ -12,39 +13,34 @@ class iVectorDB(ABC):
         Args:
             collectionName (str): The identifier for the collection to create.
             size (int): The size of the vectors to be stored in the collection.
-
-        Returns:
-            None
         """
         pass
 
     @abstractmethod
-    def saveToDB(self, texts: dict, collectionName: str):
+    def saveToDB(self, texts: dict[str, list[float]], collectionName: str):
         """
         Saves a collection of text-embedding combinations to the database under a specified collection
         Args:
-            texts (dict): A dictionary with the keys being a text and the value being the embedding vector representing
+            texts (dict[str, list[float]]): A dictionary with the keys being a text and the value being the embedding vector representing
                 the key.
             collectionName (str): The collection identifier to store the strings under.
-
-        Returns:
-            None
         """
         pass
 
     @abstractmethod
-    def queryDB(self, embedding: list[float],
-                collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list:
+    def queryDB(self, embedding: list[float], collectionNames: list[str]=None, maxHits: int=100,
+                minSimilarity: float=0) -> list[ScoredPoint]:
         """
         Queries the database for similar vectors to the provided embedding vector.
 
         Args:
-            embedding (list): A list of embeddings to use for semantic searching in the vector database.
-            collectionNames (list): A list of collection identifiers to search with the provided embedding.
-            maxHits (list): The max amount of results to be returned yb the query.
+            embedding (list[float]): A list of embeddings to use for semantic searching in the vector database.
+            collectionNames (list[str]): A list of collection identifiers to search with the provided embedding.
+            maxHits (int): The max amount of results to be returned yb the query.
             minSimilarity (float): The required minimum similarity to be returned by the query.
 
         Returns:
-            list: A list of results from the query
+            list[ScoredPoint]: The first maxHits amount of results that meet the
+            minSimilarity threshold to the embedding query
         """
         pass

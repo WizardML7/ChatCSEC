@@ -12,7 +12,7 @@ class EmbedPrepper:
     """
     @staticmethod
     def chunkTextBySize(content: str, maxChunkSize: int=800,
-                        chunkOverlap: int=100, delimiter: list=["\n\n", "\n", " ", ""]) -> list:
+                        chunkOverlap: int=100, delimiter: list=["\n\n", "\n", " ", ""]) -> list[str]:
         """
         Chunks text by the given delimiters aiming for a maximum size per chunk.
 
@@ -20,10 +20,10 @@ class EmbedPrepper:
             content (str): The string to turn into chunks
             maxChunkSize (int): The maximum size for chunks to be
             chunkOverlap (int): The amount of text for the chunks to overlap with
-            delimiter (list): A list of delimiters for the splitter to split on
+            delimiter (list[str]): A list of delimiters for the splitter to split on
 
         Returns:
-            list: List of chunks from the text
+            list[str]: List of chunks from the text
         """
         text_splitter = RecursiveCharacterTextSplitter(
             separators=delimiter,

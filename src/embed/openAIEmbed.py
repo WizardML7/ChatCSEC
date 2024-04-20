@@ -20,7 +20,7 @@ class OpenAIEmbed(iEmbed):
         self.client = AsyncOpenAI()
         self.model = model
 
-    async def embedChunk(self, content: str) -> list:
+    async def embedChunk(self, content: str) -> list[float]:
         """
         Creates an embedding vector of a chunk of data.
 
@@ -28,7 +28,7 @@ class OpenAIEmbed(iEmbed):
             content (str): A chunk of text to embed
 
         Returns:
-            list: An embedding vector representing the content
+            list[float]: An embedding vector representing the content
         """
         response = await self.client.embeddings.create(
             input=content,
@@ -36,7 +36,8 @@ class OpenAIEmbed(iEmbed):
         )
         return response.data[0].embedding
 
-    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str=["\n\n", "\n", " ", ""]) -> dict:
+    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100,
+                              delimiter: str=["\n\n", "\n", " ", ""]) -> dict[str, list[float]]:
         """
         Creates a collection of embeddings by chunking the provided content and embedding each of those chunks
 
@@ -47,7 +48,7 @@ class OpenAIEmbed(iEmbed):
             delimiter (list): A list of delimiters that the splitter should chunk on.
 
         Returns:
-            dict: a dictionary of all split chunks as keys and corresponding embeddings as values.
+            dict[str, list[float]]: a dictionary of all split chunks as keys and corresponding embeddings as values.
 
         TODO:
             Improve the method by which text is chunked.  I believe this will be the biggest impact on results of the
@@ -62,6 +63,7 @@ class OpenAIEmbed(iEmbed):
             embeddingMap[chunk] = asyncio.ensure_future(self.embedChunk(chunk))
 
         await asyncio.gather(*list(embeddingMap.values()))
+
         return embeddingMap
 
 

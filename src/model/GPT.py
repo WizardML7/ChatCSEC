@@ -29,9 +29,6 @@ class GPT(iModel):
             context (str): A section of text that the model may find useful to more adequately respond to the prompt.
             prompt (str): A string to ask the language model with.
 
-        Returns:
-            None
-
         TODO:
             Remove context from past user prompts to save on token space.
         """

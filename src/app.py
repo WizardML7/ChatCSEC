@@ -23,7 +23,8 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     Args:
         db (iVectorDB): A database object that conforms to the iDB interface
         embed (iEmbed): An embed object that conforms to the iEmbed interface
-        model (iModel): A model object that conforms to the ICrawler interface
+        model (iModel): A model object that conforms to the iModel interface
+        crawler (iCrawler):A crawler object that conforms to the iCrawler interface
     """
     prompt = "What is CVE-2024-29943?"
 

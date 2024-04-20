@@ -12,6 +12,7 @@ from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 from docx.opc.constants import RELATIONSHIP_TYPE as RELTYPES
+from typing import Any
 
 HTTP_URL_PATTERN = r'^http[s]{0,1}://.+$'
 PROTOCOL_BLACKLIST = ["#", "mailto:", "tel:"]
@@ -37,19 +38,19 @@ class IHandler(ABC):
 
     @staticmethod
     @abstractmethod
-    def findLinks(content: Response, local_domain: str, seen: dict,
-                  queue: Queue, depth: int, baseDirectories: list[str]):
+    def findLinks(content: Response, local_domain: str, seen: dict[str, Any],
+                  queue: Queue[str], depth: int, baseDirectories: list[str]):
         """
         Method to find all non-blacklisted links from documents
 
         Args:
             content (Response): A response object returned from the requests library.
             local_domain (str): The net location of the URL.
-            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-                set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links.
+            seen (dict[str, Any]): A dictionary containing the currently viewed links as keys.  This is a dictionary
+                instead of a set as the manager for multiprocessing does not support the Set type.
+            queue (Queue[str]): The queue for the crawler to search new links, contains URLs.
             depth (int): The current depth of the crawl operation.
-            baseDirectories (list): A list of accepted URLs for the crawler to search and save.
+            baseDirectories (list[str]): A list of accepted URLs for the crawler to search and save.
         """
         pass
 
@@ -61,12 +62,12 @@ class IHandler(ABC):
         check to see if any of the links have already been seen before adding to the queue.
 
         Args:
-            links (list): list of URLs to attempt to add to the worker queue.
-            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-                set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links.
+            links (list[str]): list of URLs to attempt to add to the worker queue.
+            seen (dict[str, Any]): A dictionary containing the currently viewed links as keys.  This is a dictionary
+                instead of a set as the manager for multiprocessing does not support the Set type.
+            queue (Queue[str]): The queue for the crawler to search new links, contains URLs.
             depth (int): The current depth of the crawl operation.
-            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
+            baseDirectories (list[str]): A list of accepted URL directories for the crawler to search and save.
         """
         if not baseDirectories:
             baseDirectories = ["http"]
@@ -150,7 +151,7 @@ class HTMLHandler(IHandler):
             content (Response): A response received from the request library with the html content type.
 
         Returns:
-            list: A list of allowed hyperlinks found on the provided page.
+            list[str]: A list of allowed hyperlinks found on the provided page.
         """
         clean_links = []
         for link in set(HTMLHandler.get_hyperlinks(content)):
@@ -174,18 +175,19 @@ class HTMLHandler(IHandler):
         return list(set(clean_links))
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen, queue, depth, baseDirectories: list[str]):
+    def findLinks(content: Response, local_domain: str, seen: dict[str, Any], queue: Queue[str], depth: int,
+                  baseDirectories: list[str]):
         """
         Finds all allowed links on a given page and adds them to the Queue for workers to continue processing
 
         Args:
             content (Response):  A response received from the request library with the html content type.
             local_domain (str): The domain of the current URL.
-            seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-                set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links.
+            seen (dict[str, Any]): A dictionary containing the currently viewed links as keys.  This is a dictionary
+                instead of a set as the manager for multiprocessing does not support the Set type.
+            queue (Queue[str]): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
-            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
+            baseDirectories (list[str]): A list of accepted URL directories for the crawler to search and save.
         """
         links = HTMLHandler.get_clean_hyperlinks(local_domain, content)
         HTMLHandler.addLinks(links, seen, queue, depth, baseDirectories)
@@ -213,19 +215,19 @@ class PDFHandler(IHandler):
         return text
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen: dict,
-                  queue: Queue, depth: int, baseDirectories: list[str]):
+    def findLinks(content: Response, local_domain: str, seen: dict[str, Any],
+                  queue: Queue[str], depth: int, baseDirectories: list[str]):
         """
         Finds all links within a PDF file and adds them to a queue for the workers to continue searching through.
 
         Args:
             content (Response): A response received from the request library with the PDF content type.
             local_domain (str): The domain of the current URL being analyzed.
-            seen (dict):  A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-                set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links.
+            seen (dict[str, Any]):  A dictionary containing the currently viewed links as keys.  This is a dictionary
+                instead of a set as the manager for multiprocessing does not support the Set type.
+            queue (Queue[str]): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
-            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
+            baseDirectories (list[str]): A list of accepted URL directories for the crawler to search and save.
         """
 
         links = []
@@ -253,12 +255,12 @@ class WordHandler(IHandler):
     Handler for the crawler to use to parse docx files
     """
     @staticmethod
-    def parseText(content) -> str:
+    def parseText(content: Response) -> str:
         """
         Extract the text from the docx document
 
         Args:
-            content: A response received from the request library with the docx content type.
+            content(Response): A response received from the request library with the docx content type.
 
         Returns:
             str: The text and tables in the docx file
@@ -288,22 +290,19 @@ class WordHandler(IHandler):
         return text
 
     @staticmethod
-    def findLinks(content: Response, local_domain: str, seen: dict,
-                  queue: Queue, depth: int, baseDirectories: list[str]):
+    def findLinks(content: Response, local_domain: str, seen: dict[str, Any],
+                  queue: Queue[str], depth: int, baseDirectories: list[str]):
         """
         Finds all links within a docx file and adds them to a queue for the workers to continue searching through.
 
         Args:
             content (Response): A response received from the request library with the PDF content type.
             local_domain (str): The domain of the current URL being analyzed.
-            seen (dict):  A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type.
-            queue (Queue): The queue for the crawler to search new links.
+            seen (dict[str, Any]): A dictionary containing the currently viewed links as keys.  This is a dictionary
+                instead of a set as the manager for multiprocessing does not support the Set type.
+            queue (Queue[str]): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
-            baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
-
-        Returns:
-            None
+            baseDirectories (list[str]): A list of accepted URL directories for the crawler to search and save.
         """
         document = Document(BytesIO(content.content))
         links = []

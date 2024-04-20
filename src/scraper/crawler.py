@@ -1,20 +1,22 @@
-import queue
-
-import requests
-from pathvalidate import sanitize_filepath
-from urllib.parse import urlparse
-import os
-from .iCrawler import iCrawler
 from multiprocessing import Pool, Manager
-from .handlers import *
-import traceback
-import re
+from pathvalidate import sanitize_filepath
 from queue import Empty
+from typing import Any
+
+from .handlers import *
+from .iCrawler import iCrawler
+
+import os
+import queue
+import re
+import requests
+import traceback
 
 class Crawler(iCrawler):
     @staticmethod
-    def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectories: list[str], queue: queue.Queue,
-                  seen: dict, outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
+    def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectories: list[str],
+                  queue: queue.Queue[str],seen: dict[str, Any], outputDirectory: str, recordUrl: bool,
+                  contentRegex: re.Pattern, matchSkip: bool=False):
         """
         Crawls an individual page, extracting links, extracting and parsing content, and saving the content to a file
 
@@ -24,12 +26,13 @@ class Crawler(iCrawler):
             url (str):  The URL of the page to crawl
             depth (int): The current depth of the overall crawl
             maxDepth (int): The maximum depth the crawling operation is intended to go
-            baseDirectories (list): A list of URL directories that are acceptable for the crawler to download links
-                from.  If it is set to None, all URLs will be accepted
-            queue (manager.Queue): A shared queue used between the workers in the pool to queue up and scan
-                different URLs
-            seen (manager.Dict): A shared dictionary used between workers to in the pool to know which URLs have already
-                been visited
+            baseDirectories (list[str]): A list of URL directories that are acceptable for the crawler to download links
+                from.  If it is set to None, all URLs will be accepted.
+            queue (queue.Queue[str]): A shared queue used between the workers in the pool to queue up and scan
+                different URLs.  Needs to be created with manager.Queue to properly function with multiprocessing.
+            seen (dict[str, Any]): A shared dictionary used between workers to in the pool to know which URLs have
+                already been visited. Used as a set since managers do not support sets.  Needs to be created with
+                Manager.dict() for multiprocessing.
             outputDirectory (str): The output directory for the crawl operation
             recordUrl (bool): If True, the URL will be saved to a file
             contentRegex (re.Pattern): A regex pattern to match documents with to extract the desired content for
@@ -91,7 +94,7 @@ class Crawler(iCrawler):
             handlers[contentType].findLinks(content, local_domain, seen, queue, depth, baseDirectories)
 
     @staticmethod
-    def crawl(url: str, maxDepth: int,baseDirectories: list[str] = None, cores: int = 2,
+    def crawl(url: str, maxDepth: int, baseDirectories: list[str] = None, cores: int = 2,
               outputDirectory: str = os.path.dirname(os.path.realpath(__file__)),
               urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set[str]:
         """Method to start crawling webpoages and downloading related content.
@@ -103,7 +106,7 @@ class Crawler(iCrawler):
 
         Args:
             maxDepth (int): The max depth that the crawler should follow links to
-            baseDirectories (list): A list of URLs that specify the allowed url directories that the crawler will pull
+            baseDirectories (list[str]): A list of URLs that specify the allowed url directories that the crawler will pull
                 webpages from.  If this is set to None, all URLs will be accepted.
             cores (int): The amount of CPU cores for the crawler to use
             outputDirectory (str): A path pointing to the output directory for the files downloaded and processed
@@ -115,7 +118,7 @@ class Crawler(iCrawler):
                 downloaded. If contentRegexString is set to None, this variable is not used.
 
         Returns:
-            Set: A set of links found by the crawler.
+            Set[str]: A set of links found by the crawler.
 
         Examples:
             >>> Crawler.crawl("https://openai.com/customer-stories", 1,

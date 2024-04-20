@@ -40,12 +40,12 @@ class QDrantVectorDB(iVectorDB):
 
 
 
-    def convertToPoints(self, texts: dict) -> list[PointStruct]:
+    def convertToPoints(self, texts: dict[str, list[float]]) -> list[PointStruct]:
         """
         Converts a dictionary of text-embedding key-value pairs to a list of PointStructs to store in the DB.
 
         Args:
-            texts (dict): A text-embedding key-value dictionary to convert into PointStructs .
+            texts (dict[str, list[float]]): A text-embedding key-value dictionary to convert into PointStructs .
 
         Returns:
             list: The texts passed in converted to PointStruct objects.
@@ -66,17 +66,17 @@ class QDrantVectorDB(iVectorDB):
 
         Args:
             collectionName (str): The identifier of the collection to save the points to.
-            points (list): A list of PointStructs to save to the database
+            points (list[PointStruct]): A list of PointStructs to save to the database
         """
         self.client.upsert(collectionName, points)
 
     #Texts is a dict combo of text and embeddings output from an embedding model
-    def saveToDB(self, texts: dict, collectionName: str):
+    def saveToDB(self, texts: dict[str, list[float]], collectionName: str):
         """
         Save a collection of text-embedding combinations to a collection in the database.
 
         Args:
-            texts (dict):  A text-embedding key-value dictionary to convert into PointStructs.
+            texts (dict[str, list[float]]):  A text-embedding key-value dictionary to convert into PointStructs.
             collectionName (str): The identifier of the collection to save the points to.
         """
         points = self.convertToPoints(texts)

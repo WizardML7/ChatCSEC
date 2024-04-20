@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import PointStruct
+from qdrant_client.http.models import PointStruct, ScoredPoint
 from .DBInterface import iVectorDB
 from grpc._channel import _InactiveRpcError
 
@@ -23,9 +23,6 @@ class QDrantVectorDB(iVectorDB):
         Args:
             collectionName (str): The identifier for the new collection.
             size (int): The size of the embedding vectors that will be stored in the database.
-
-        Returns:
-            None
         """
         try:
             self.client.create_collection(
@@ -51,7 +48,7 @@ class QDrantVectorDB(iVectorDB):
             texts (dict): A text-embedding key-value dictionary to convert into PointStructs .
 
         Returns:
-            list: A list of PointStructs.
+            list: The texts passed in converted to PointStruct objects.
 
         """
         return [
@@ -70,9 +67,6 @@ class QDrantVectorDB(iVectorDB):
         Args:
             collectionName (str): The identifier of the collection to save the points to.
             points (list): A list of PointStructs to save to the database
-
-        Returns:
-            None
         """
         self.client.upsert(collectionName, points)
 
@@ -84,15 +78,12 @@ class QDrantVectorDB(iVectorDB):
         Args:
             texts (dict):  A text-embedding key-value dictionary to convert into PointStructs.
             collectionName (str): The identifier of the collection to save the points to.
-
-        Returns:
-
         """
         points = self.convertToPoints(texts)
         self.saveToCollection(collectionName, points)
 
     def queryDB(self, embedding: list[float],
-                collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list:
+                collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list[ScoredPoint]:
         """
         Queries the database for similar vectors to the provided embedding vector.
 
@@ -103,17 +94,18 @@ class QDrantVectorDB(iVectorDB):
             minSimilarity (float): The required minimum similarity to be returned by the query.
 
         Returns:
-            list: A list of results from the query
+            list: The first maxHits amount of results that meet the minSimilarity threshold to the embedding query
 
         TODO:
             Change to return normalized data instead of ScoredPoints
+        TODO:
+            Make sure to only search collections of the proper size
 
         """
         results = []
         if not collectionNames:
             collectionNames = [collection['name'] for collection in self.client.get_collections().dict()['collections']]
 
-        # TODO: make sure to only search collections of the proper size
         for collection in collectionNames:
             results.append(self.client.search(collection_name=collection,
                                               query_vector=("text embedding", embedding.result()),

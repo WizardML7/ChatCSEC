@@ -50,9 +50,6 @@ class IHandler(ABC):
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URLs for the crawler to search and save.
-
-        Returns:
-            None
         """
         pass
 
@@ -70,11 +67,6 @@ class IHandler(ABC):
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
-
-
-        Returns:
-            None
-
         """
         if not baseDirectories:
             baseDirectories = ["http"]
@@ -106,9 +98,6 @@ class HTMLHandler(IHandler):
             Args:
                 tag (str): The tag of the HTML element.
                 attrs (dict): The attributes of the HTML element.
-
-            Returns:
-                None.=
             """
             attrs = dict(attrs)
 
@@ -136,9 +125,6 @@ class HTMLHandler(IHandler):
 
         Args:
             content (Response): A response received from the request library with the html content type.
-
-        Returns:
-            None
         """
         # Try to open the URL and read the HTML
         try:
@@ -200,9 +186,6 @@ class HTMLHandler(IHandler):
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
-
-        Returns:
-
         """
         links = HTMLHandler.get_clean_hyperlinks(local_domain, content)
         HTMLHandler.addLinks(links, seen, queue, depth, baseDirectories)
@@ -243,9 +226,6 @@ class PDFHandler(IHandler):
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
-
-        Returns:
-            None
         """
 
         links = []
@@ -281,7 +261,7 @@ class WordHandler(IHandler):
             content: A response received from the request library with the docx content type.
 
         Returns:
-            str: The text inside of the docx file
+            str: The text and tables in the docx file
         """
         document = Document(BytesIO(content.content))
         text = ''
@@ -307,7 +287,6 @@ class WordHandler(IHandler):
 
         return text
 
-    #TODO: Finish this
     @staticmethod
     def findLinks(content: Response, local_domain: str, seen: dict,
                   queue: Queue, depth: int, baseDirectories: list[str]):

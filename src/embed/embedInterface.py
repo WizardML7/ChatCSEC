@@ -6,7 +6,7 @@ class iEmbed(ABC):
     polymorphism throughout the application.
     """
     @abstractmethod
-    def createEmbedding(content: str, maxChunkSize: int, chunkOverlap: int, delimiter: list) -> dict:
+    def createEmbedding(content: str, maxChunkSize: int, chunkOverlap: int, delimiter: list) -> dict[str, list[float]]:
         """
         Takes in a string, chunks the string and embeds the chunks.
         Args:

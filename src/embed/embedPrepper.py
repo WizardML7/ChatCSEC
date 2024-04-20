@@ -12,7 +12,7 @@ class EmbedPrepper:
     """
     @staticmethod
     def chunkTextBySize(content: str, maxChunkSize: int=800,
-                        chunkOverlap: int=100, delimiter: list=["\n\n", "\n", " ", ""]) -> list:
+                        chunkOverlap: int=100, delimiter: list=["\n\n", "\n", " ", ""]) -> list[str]:
         """
         Chunks text by the given delimiters aiming for a maximum size per chunk.
 

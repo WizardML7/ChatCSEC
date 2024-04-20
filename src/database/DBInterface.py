@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from qdrant_client.http.models import ScoredPoint
 
 class iVectorDB(ABC):
     """
@@ -12,9 +13,6 @@ class iVectorDB(ABC):
         Args:
             collectionName (str): The identifier for the collection to create.
             size (int): The size of the vectors to be stored in the collection.
-
-        Returns:
-            None
         """
         pass
 
@@ -26,15 +24,12 @@ class iVectorDB(ABC):
             texts (dict): A dictionary with the keys being a text and the value being the embedding vector representing
                 the key.
             collectionName (str): The collection identifier to store the strings under.
-
-        Returns:
-            None
         """
         pass
 
     @abstractmethod
     def queryDB(self, embedding: list[float],
-                collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list:
+                collectionNames: list[str]=None, maxHits: int=100, minSimilarity: float=0) -> list[ScoredPoint]:
         """
         Queries the database for similar vectors to the provided embedding vector.
 
@@ -45,6 +40,6 @@ class iVectorDB(ABC):
             minSimilarity (float): The required minimum similarity to be returned by the query.
 
         Returns:
-            list: A list of results from the query
+            list: The first maxHits amount of results that meet the minSimilarity threshold to the embedding query
         """
         pass

@@ -14,7 +14,7 @@ from queue import Empty
 class Crawler(iCrawler):
     @staticmethod
     def crawlPage(local_domain: str, url: str, depth: int, maxDepth: int, baseDirectories: list[str], queue: queue.Queue,
-                  seen,outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
+                  seen: dict, outputDirectory: str, recordUrl: bool, contentRegex: re.Pattern, matchSkip: bool=False):
         """
         Crawls an individual page, extracting links, extracting and parsing content, and saving the content to a file
 
@@ -36,9 +36,10 @@ class Crawler(iCrawler):
                 writing to a file.  If set to None, all content will be recorded
             matchSkip (bool): If True and contentRegex is not None, then skip files that do not match the content regex
 
-        Returns:
-            None
+        TODO:
+            Fix bug with bad filenames, try first openai test for example
         """
+
         print(url, depth)  # for debugging and to see the progress
         # Try extracting the text from the link, if failed proceed with the next item in the queue
 
@@ -57,7 +58,7 @@ class Crawler(iCrawler):
         if recordUrl:
             try:
                 # Save text from the url to a <url>.txt file
-                # TODO: Fix bug with bad filenames, try first openai test for example
+                # TODO: This line causes the bug
                 filename = sanitize_filepath(outputDirectory + '/text/' + local_domain + '/' + url[8:].replace("/", "_") + ".txt")
                 with open(filename, "w", encoding="UTF-8") as f:
                     # use the appropriate handler for the MIME type
@@ -92,7 +93,7 @@ class Crawler(iCrawler):
     @staticmethod
     def crawl(url: str, maxDepth: int,baseDirectories: list[str] = None, cores: int = 2,
               outputDirectory: str = os.path.dirname(os.path.realpath(__file__)),
-              urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set:
+              urlRegexString: str=None, contentRegexString: str=None, matchSkip: bool=False) -> set[str]:
         """Method to start crawling webpoages and downloading related content.
 
         Notes:

@@ -1,7 +1,9 @@
 venv/
 .idea
-scraper/text
-scraper/processed
-scraper/test
+src/scraper/text
+src/scraper/processed
+src/scraper/test
 */__pycache__/*
-*data*
+*/data/*
+_build/
+*.pyc

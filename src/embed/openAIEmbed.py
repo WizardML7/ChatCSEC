@@ -20,7 +20,7 @@ class OpenAIEmbed(iEmbed):
         self.client = AsyncOpenAI()
         self.model = model
 
-    async def embedChunk(self, content: str) -> list:
+    async def embedChunk(self, content: str) -> list[float]:
         """
         Creates an embedding vector of a chunk of data.
 
@@ -36,7 +36,7 @@ class OpenAIEmbed(iEmbed):
         )
         return response.data[0].embedding
 
-    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str=["\n\n", "\n", " ", ""]) -> dict:
+    async def createEmbedding(self, content: str, maxChunkSize: int=800, chunkOverlap: int=100, delimiter: str=["\n\n", "\n", " ", ""]) -> dict[str, list[float]]:
         """
         Creates a collection of embeddings by chunking the provided content and embedding each of those chunks
 
@@ -62,6 +62,7 @@ class OpenAIEmbed(iEmbed):
             embeddingMap[chunk] = asyncio.ensure_future(self.embedChunk(chunk))
 
         await asyncio.gather(*list(embeddingMap.values()))
+
         return embeddingMap
 
 

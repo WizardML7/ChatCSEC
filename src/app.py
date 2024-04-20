@@ -28,15 +28,16 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
     prompt = "What is CVE-2024-29943?"
 
     start = perf_counter()
-    collectionName = "FakeReports"
+    collectionName = "asd"
     db.createCollection(collectionName, 1536)
 
     outputDir = "./data/"
+    '''
     crawler.crawl("https://www.mozilla.org/en-US/security/advisories/mfsa2024-15/",
                   1,
                   cores=4,
                   outputDirectory=outputDir)
-
+    '''
     embeddings = dict()
 
     for root, _, fileNames in os.walk(f"{outputDir}/text/"):
@@ -47,7 +48,8 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
 
             os.remove(f'{root}/{fileName}')
 
-    db.saveToDB(embeddings, collectionName)
+    if len(embeddings) > 0:
+        db.saveToDB(embeddings, collectionName)
 
     promptEmbedding = list((await embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
                                                  chunkOverlap=0,

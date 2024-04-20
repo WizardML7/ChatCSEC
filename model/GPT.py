@@ -12,7 +12,7 @@ class GPT(iModel):
         Args:
             systemMessage (str): The system message to provide to the completions model.
             model (str):  The model identifier for the client to use.  A current list can be
-            found at https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo.
+                found at https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo.
         """
         self.client = OpenAI(api_key=environ["OPENAI_API_KEY"])
         self.model = model

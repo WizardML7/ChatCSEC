@@ -42,7 +42,7 @@ class IHandler(ABC):
             content (Response): A response object returned from the requests library.
             local_domain (str): The net location of the URL.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type.
+                set as the manager for multiprocessing does not support the Set type.
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URLs for the crawler to search and save.
@@ -62,7 +62,7 @@ class IHandler(ABC):
         Args:
             links (list): list of URLs to attempt to add to the worker queue.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type.
+                set as the manager for multiprocessing does not support the Set type.
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
@@ -192,7 +192,7 @@ class HTMLHandler(IHandler):
             content (Response):  A response received from the request library with the html content type.
             local_domain (str): The domain of the current URL.
             seen (dict): A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type.
+                set as the manager for multiprocessing does not support the Set type.
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.
@@ -235,7 +235,7 @@ class PDFHandler(IHandler):
             content (Response): A response received from the request library with the PDF content type.
             local_domain (str): The domain of the current URL being analyzed.
             seen (dict):  A dictionary containing the currently viewed links as keys.  This is a dictionary instead of a
-            set as the manager for multiprocessing does not support the Set type.
+                set as the manager for multiprocessing does not support the Set type.
             queue (Queue): The queue for the crawler to search new links.
             depth (int): The current depth of the crawl operation.
             baseDirectories (list): A list of accepted URL directories for the crawler to search and save.

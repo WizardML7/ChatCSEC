@@ -19,15 +19,15 @@ class iCrawler(ABC):
         Args:
             maxDepth (int): The max depth that the crawler should follow links to
             baseDirectories (list): A list of URLs that specify the allowed url directories that the crawler will pull
-            webpages from.  If this is set to None, all URLs will be accepted.
+                webpages from.  If this is set to None, all URLs will be accepted.
             cores (int): The amount of CPU cores for the crawler to use
             outputDirectory (str): A path pointing to the output directory for the files downloaded and processed
             urlRegexString (str): A string representing a regex to match URLs with.  If set to None, all URLs will be
-            accepted for download
+                accepted for download
             contentRegexString (str): A regex used to extract content out of webpages.  It must follow the syntax of
-            (?:.LOOKABEHIND)(?P<content>.*)(?:LOOKBEHIND). If set to None, all content will be ingested
+                (?:.LOOKABEHIND)(?P<content>.*)(?:LOOKBEHIND). If set to None, all content will be ingested
             matchSkip (bool): If set to True, any content that does not match the contentRegexString will not be
-            downloaded. If contentRegexString is set to None, this variable is not used.
+                downloaded. If contentRegexString is set to None, this variable is not used.
 
         Returns:
             Set: A set of links found by the crawler.

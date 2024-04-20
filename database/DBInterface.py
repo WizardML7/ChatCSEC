@@ -24,7 +24,7 @@ class iVectorDB(ABC):
         Saves a collection of text-embedding combinations to the database under a specified collection
         Args:
             texts (dict): A dictionary with the keys being a text and the value being the embedding vector representing
-            the key.
+                the key.
             collectionName (str): The collection identifier to store the strings under.
 
         Returns:

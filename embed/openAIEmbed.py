@@ -15,7 +15,7 @@ class OpenAIEmbed(iEmbed):
         Constructor for openAIEmbed
         Args:
             model (str): The identifier for the model to be used. Model identifiers can be found
-            at https://platform.openai.com/docs/models/embeddings
+                at https://platform.openai.com/docs/models/embeddings
         """
         self.client = AsyncOpenAI()
         self.model = model

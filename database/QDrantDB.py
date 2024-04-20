@@ -12,7 +12,7 @@ class QDrantVectorDB(iVectorDB):
         Constructor for database
         Args:
             host (str): The ip address of the qdrant instance. Can also specify ":memory:" to create an instance in
-            RAM. Due to the nature of databases, this is not recommended outside of testing.
+                RAM. Due to the nature of databases, this is not recommended outside of testing.
         """
         self.client = QdrantClient(host=host, prefer_grpc=True, timeout=None)
 

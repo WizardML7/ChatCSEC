@@ -20,20 +20,20 @@ class Crawler(iCrawler):
 
         Args:
             local_domain(str): The domain of the web address, used to create a directory and save files to the
-            respective directories of where they were obtained from.
+                respective directories of where they were obtained from.
             url (str):  The URL of the page to crawl
             depth (int): The current depth of the overall crawl
             maxDepth (int): The maximum depth the crawling operation is intended to go
             baseDirectories (list): A list of URL directories that are acceptable for the crawler to download links
-            from.  If it is set to None, all URLs will be accepted
+                from.  If it is set to None, all URLs will be accepted
             queue (manager.Queue): A shared queue used between the workers in the pool to queue up and scan
-            different URLs
+                different URLs
             seen (manager.Dict): A shared dictionary used between workers to in the pool to know which URLs have already
-            been visited
+                been visited
             outputDirectory (str): The output directory for the crawl operation
             recordUrl (bool): If True, the URL will be saved to a file
             contentRegex (re.Pattern): A regex pattern to match documents with to extract the desired content for
-            writing to a file.  If set to None, all content will be recorded
+                writing to a file.  If set to None, all content will be recorded
             matchSkip (bool): If True and contentRegex is not None, then skip files that do not match the content regex
 
         Returns:
@@ -102,15 +102,15 @@ class Crawler(iCrawler):
         Args:
             maxDepth (int): The max depth that the crawler should follow links to
             baseDirectories (list): A list of URLs that specify the allowed url directories that the crawler will pull
-            webpages from.  If this is set to None, all URLs will be accepted.
+                webpages from.  If this is set to None, all URLs will be accepted.
             cores (int): The amount of CPU cores for the crawler to use
             outputDirectory (str): A path pointing to the output directory for the files downloaded and processed
             urlRegexString (str): A string representing a regex to match URLs with.  If set to None, all URLs will be
-            accepted for download
+                accepted for download
             contentRegexString (str): A regex used to extract content out of webpages.  It must follow the syntax of
-            (?:.LOOKABEHIND)(?P<content>.*)(?:LOOKBEHIND). If set to None, all content will be ingested
+                (?:.LOOKABEHIND)(?P<content>.*)(?:LOOKBEHIND). If set to None, all content will be ingested
             matchSkip (bool): If set to True, any content that does not match the contentRegexString will not be
-            downloaded. If contentRegexString is set to None, this variable is not used.
+                downloaded. If contentRegexString is set to None, this variable is not used.
 
         Returns:
             Set: A set of links found by the crawler.

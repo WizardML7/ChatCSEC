@@ -10,6 +10,7 @@ class iEmbed(ABC):
                         delimiter: list[str]) -> dict[str, list[float]]:
         """
         Takes in a string, chunks the string and embeds the chunks.
+
         Args:
             content (str): The string to be embedded.
             maxChunkSize (int): The max size chunks should be.

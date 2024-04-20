@@ -9,8 +9,8 @@ import sys
 
 sys.path.append("C:\\Users\\kanga\\OneDrive\\College\\RIT\\CAPSTONE\\ChatCSEC\\src")
 project = 'ChatCSEC'
-copyright = '2024, Brian McNulty, Kyri Christensen, Domenic Lo Iacano, Rich Kleinhenz'
-author = 'Brian McNulty, Kyri Christensen, Domenic Lo Iacano, Rich Kleinhenz'
+copyright = '2024, Brian McNulty, Kyri Lea, Domenic Lo Iacano, Rich Kleinhenz'
+author = 'Brian McNulty, Kyri Lea, Domenic Lo Iacano, Rich Kleinhenz'
 release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------

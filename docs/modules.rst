@@ -1,5 +1,5 @@
 ChatCSEC
-===
+========
 
 .. toctree::
    :maxdepth: 4

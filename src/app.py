@@ -7,6 +7,7 @@ from model.GPT import GPT
 from scraper.iCrawler import iCrawler
 from scraper.crawler import Crawler
 from multiprocessing import cpu_count
+from frontend import web_app
 
 import asyncio
 import os
@@ -70,10 +71,11 @@ async def run(db: iVectorDB, embed: iEmbed, model: iModel, crawler: iCrawler):
 
 if __name__ == "__main__":
     # Async is currently bugged on windows platforms of the current version.  This workaround changes to selecter event loop
-    if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    #if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
+    #    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    asyncio.run(run(QDrantVectorDB("129.21.21.11"),
-                    OpenAIEmbed("text-embedding-3-small"),
-                    GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
-                    Crawler))
+    #asyncio.run(run(QDrantVectorDB("129.21.21.11"),
+    #                OpenAIEmbed("text-embedding-3-small"),
+    #                GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview"),
+    #                Crawler))
+    web_app.run()

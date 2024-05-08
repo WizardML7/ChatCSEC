@@ -67,8 +67,6 @@ class OpenAIEmbed(iEmbed):
         return embeddingMap
 
 
-
-
 if __name__ == "__main__":
     # embedding test
     # print(OpenAIEmbed.createEmbedding("asdf"))

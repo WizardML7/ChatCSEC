@@ -1,18 +1,18 @@
 from flask import Flask, render_template, request, jsonify
 #from database.DBInterface import iDB
-from database.QDrantDB import QDrantDB
+from src.database.QDrantDB import QDrantVectorDB
 #from embed.embedInterface import iEmbed0
-from embed.openAIEmbed import OpenAIEmbed
+from src.embed.openAIEmbed import OpenAIEmbed
 #from model.modelInterface import iModel
-from model.GPT import GPT
+from src.model.GPT import GPT
 import sys
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
-def home():
-    db = QDrantDB("129.21.21.11")
-    embed = OpenAIEmbed
+async def home():
+    db = QDrantVectorDB("129.21.21.11")
+    embed = OpenAIEmbed("text-embedding-3-small")
     model = GPT("You are an advanced subject matter expert on the field of cybersecurity", "gpt-4-turbo-preview")
 
     if request.method == 'POST':
@@ -22,19 +22,17 @@ def home():
 
         if model_selection == 'HYDE':
             hydeResponse = model.hydePrompt(prompt)
-            hydeEmbedding = list(embed.createEmbedding(hydeResponse,
-                                                    maxChunkSize=sys.maxsize,
-                                                    chunkOverlap=0,
-                                                    delimiter="\n"*50).values())[0]
+            hydeEmbedding = list((await embed.createEmbedding(hydeResponse, maxChunkSize=sys.maxsize,
+                                                 chunkOverlap=0,
+                                                 delimiter="\n"*50)).values())[0]
 
             hydeResults = db.queryDB(hydeEmbedding, collectionNames=[collection_selection], maxHits=50)
             hydeResponse = model.prompt(hydeResults, prompt)
             return jsonify({'response': hydeResponse})
         else:
-            promptEmbedding = list(embed.createEmbedding(prompt,
-                                                    maxChunkSize=sys.maxsize,
-                                                    chunkOverlap=0,
-                                                    delimiter="\n"*50).values())[0]
+            promptEmbedding = list((await embed.createEmbedding(prompt, maxChunkSize=sys.maxsize,
+                                                 chunkOverlap=0,
+                                                 delimiter="\n"*50)).values())[0]
 
             promptResults = db.queryDB(promptEmbedding, collectionNames=[collection_selection], maxHits=50)
             promptResponse = model.prompt(promptResults, prompt)

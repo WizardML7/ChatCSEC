@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>ChatCSEC: Cybersecurity Expert AI</title>
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>Project: ChatCSEC</strong></li>
+        </ul>
+        <ul>
+            <li><a href="https://wizardml7.github.io/">Home</a></li>
+            <li><a href="#overview">Project Overview</a></li>
+            <li><a href="#components">Application Components</a></li>
+            <li><a href="#features">Key Features</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#usage">Usage</a></li>
+            <li><a href="#futurework">Future Work</a></li>
+        </ul>
+    </nav>
+    <main class="container">
+        <div class="grid">
+            <section>
+                <h2>ChatCSEC: Cybersecurity Expert AI</h2>
+                <p>
+                    ChatCSEC is a cutting-edge cybersecurity chatbot leveraging OpenAI's GPT model. Designed to provide accurate and contextual responses to cybersecurity queries, ChatCSEC integrates private or internal document embeddings for enhanced responses. This project was collaboratively developed by Domenic Lo Iacono, Kyri Lea, Brian McNulty, and Rich Kleinhenz.
+                </p>
+
+                <h3 id="overview">Project Overview</h3>
+                <p>
+                    The ChatCSEC application includes modular components such as a user interface, AI models, embedding systems, a vector database, and a web scraper. Together, these components create a robust platform for cybersecurity knowledge sharing and query resolution.
+                </p>
+
+                <h3 id="components">Application Components</h3>
+                <ul>
+                    <li><strong>User Interface</strong>: The primary interface for interacting with ChatCSEC.</li>
+                    <li><strong>Model</strong>: Utilizes OpenAI's GPT-4-0125-preview model to formulate responses. Requires an OpenAI API key.</li>
+                    <li><strong>Embedding Model</strong>: Processes documents using OpenAI's text-embedding-3-small model to extend the chatbot's knowledge base. Requires an OpenAI API key.</li>
+                    <li><strong>Vector Database</strong>: QDrant stores embeddings for efficient retrieval and training persistence.</li>
+                    <li><strong>Web Scraper</strong>: Crawls websites to gather content and embed new data, ensuring the chatbot remains up-to-date with recent information.</li>
+                </ul>
+
+                <h3 id="features">Key Features</h3>
+                <ul>
+                    <li><strong>Cybersecurity Expertise</strong>: Provides reliable and accurate responses tailored to cybersecurity topics.</li>
+                    <li><strong>Customizable Knowledge Base</strong>: Integrates private documents into the model’s training data via embeddings.</li>
+                    <li><strong>Automated Updates</strong>: Includes a web scraper for dynamic updates, ensuring information remains current.</li>
+                    <li><strong>Modular Design</strong>: Flexible architecture for substituting components such as models, databases, or scrapers.</li>
+                </ul>
+
+                <h3 id="installation">Installation</h3>
+                <p>To set up ChatCSEC, developers should:</p>
+                <ol>
+                    <li>Set up an OpenAI account and obtain API keys for the specified models.</li>
+                    <li>Install QDrant as the vector database.</li>
+                    <li>Run the application locally and configure component connections as needed.</li>
+                </ol>
+
+                <h3 id="usage">Usage</h3>
+                <p>
+                    ChatCSEC allows users to interact with a cybersecurity chatbot and train it using internal or external documents. Documentation generation is supported using Sphinx. To build documentation:
+                </p>
+                <ol>
+                    <li>Run `sphinx-apidoc -o docs ChatCSEC` to create or update the rst files.</li>
+                    <li>Use the Makefile in the `docs` directory to generate HTML, Latex, or other formats. The generated files will appear in `/docs/_build/`.</li>
+                </ol>
+
+                <h3 id="futurework">Future Work</h3>
+                <ul>
+                    <li>Expand compatibility with additional vector databases and embedding models.</li>
+                    <li>Improve the web scraper to handle more complex websites and file formats.</li>
+                    <li>Introduce a more user-friendly interface for non-technical users.</li>
+                    <li>Enable advanced query analytics to identify trends in cybersecurity queries.</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+    <footer class="container">
+        <small><a href="https://github.com/WizardML7">GitHub Profile</a> • <a href="#">Contact</a></small>
+    </footer>
+</body>
+</html>
